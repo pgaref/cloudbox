@@ -1,6 +1,6 @@
 
 cloudbox: cloudbox.h cloudbox.c sglib.h
-	gcc -g -ansi -pedantic -Wall -o cloudbox -lpthread -lcrypto -lssl cloudbox.c
+	gcc cloudbox.c -g -Wall -o cloudbox -lpthread -lcrypto -lssl
 
 clean:
 	rm cloudbox

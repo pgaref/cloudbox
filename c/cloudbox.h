@@ -16,7 +16,24 @@
  * 
  * Have fun!
  */
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <strings.h>
+#include <errno.h>
 
+#include <sys/stat.h>
+#include <dirent.h>
+#include <pwd.h>
+#include <grp.h>
+#include <time.h>
+#include <locale.h>
+#include <sys/types.h>
+#include <sys/dir.h>
+#include <sys/param.h>
+#include <getopt.h>
+#include <stdint.h>
 /*
  * NOTE: pthread.h needs -lpthread flag during compilation.
  */
@@ -97,7 +114,9 @@ typedef struct dir_files_status_list {
  * in order to be able to find immediatly inconsistencies,
  */
 extern struct dir_files_status_list * watched_files;
+extern char * watched_dir;
 
+dir_files_status_list * listWatchedDir(char * );
 /*
  * Print mutex, for printing nicely the messages from different threads
  */
@@ -149,7 +168,7 @@ void compute_sha1_of_buffer(char *outbuff, char *buffer, size_t buffer_len);
  * all the needed parameters. Add your parameters list at your
  * own will.
  */ 
-void scan_for_file_changes_thread(void *params);
+void * scan_for_file_changes_thread(void * time_interval);
 
 /**
  * Thread that handles a new incoming TCP connection.
