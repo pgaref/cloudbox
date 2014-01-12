@@ -83,12 +83,10 @@ typedef struct dir_files_status_list {
 	char sha1sum[SHA1_BYTES_LEN];
 	time_t modifictation_time_from_epoch;
 	/* Extra fields! */
-	char  owner[25];
-	char  group[25];
-	char  permissions[20];
-  
-  
-	struct dir_files_status_list *previous;
+	char  * owner;
+	char  * group;
+	mode_t  permission;
+
 	struct dir_files_status_list *next;
 } dir_files_status_list;
 
