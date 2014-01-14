@@ -31,14 +31,94 @@ pthread_mutex_t print_mutex;
 pthread_mutex_t file_list_mutex;
 
 /**
+ * Thread that receives UDP broadcast messages and
+ * based on the message type, the dispatcher 
+ * can fire up a new thread or do a specific job.
+ */
+
+void * udp_receiver_dispatcher_thread(void *port){
+	int sock, status, buflen;
+	unsigned sinlen;
+	char buffer[MAXBUF];
+	struct sockaddr_in sock_in;
+	int yes = 1;
+	
+	sinlen = sizeof(struct sockaddr_in);
+	memset(&sock_in, 0, sinlen);
+	/* Create Socket */
+	sock = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if(sock == -1)
+		perror("Cloudbox Error: UDP Broadcast Server Socket failed!\n");
+	
+	/*Fill in server's sockaddr_in */
+	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
+	sock_in.sin_port = htons((intptr_t)port);
+	sock_in.sin_family = PF_INET;
+	
+	/*Bind server socket and listen for incoming client */
+	status = bind(sock, (struct sockaddr *)&sock_in, sinlen);
+	if(status == -1)
+		perror("Cloudbox Error: UDP Broadcast Server Bind-ing failed\n");
+	
+	status = getsockname(sock, (struct sockaddr *)&sock_in, &sinlen);
+	printf("Sock port %d\n",htons(sock_in.sin_port));
+	
+	buflen = MAXBUF;
+	printf("SERVER: waiting for data from client\n");
+	while(1)
+	{
+		memset(buffer, 0, buflen);
+		status = recvfrom(sock, buffer, buflen, 0, (struct sockaddr *)&sock_in, &sinlen);
+		if(status == -1)
+			perror("Cloudbox Error: UDP Broadcast Server recvfrom call failed \n");
+		
+		if(!strcmp(buffer, "quit")){
+			printf("Quiting. . .\n");
+			break;
+		}
+		printf("SERVER: read %d bytes from IP %s:%d(%s)\n", status,
+		       inet_ntoa(sock_in.sin_addr),sock_in.sin_port, buffer);
+		
+		
+		//printf("sendto Status = %d\n", status);
+	}
+	shutdown(sock, 2);
+	close(sock);
+	
+	
+	
+	
+}
+/**
  * Computes the SHA1 checksum of a file.
  */
 void compute_sha1_of_file(char *outbuff, char *filename){
-	/* The data lenght to be hashed */
-	size_t length = sizeof(filename);
-	
-	SHA1((const unsigned char *)filename, length, (unsigned char *) outbuff);
 	/* outbuff now contains the 20-byte SHA-1 hash */
+	FILE *inFile = fopen (filename, "rb");
+	SHA_CTX shaContext;
+	int bytes;
+	unsigned char data[1024];
+	
+	if (inFile == NULL) {
+		fprintf (stderr,"%s can't be opened.\n",filename);
+		exit(EXIT_FAILURE);
+	}
+	
+	SHA1_Init (&shaContext);
+	
+	while ((bytes = fread (data, 1, 1024, inFile)) != 0)
+	{
+		SHA1_Update (&shaContext, data, bytes);
+	}
+	SHA1_Final ((unsigned char *)outbuff,&shaContext);
+	/*
+	for(i = 0; i < SHA1_BYTES_LEN; i++)
+		printf("%02x", (unsigned char)outbuff[i]);
+	
+	printf (" %s\n", filename);
+	*/
+	fclose (inFile);
+	
 }
 /**
  * Computes the SHA1 checksum of a buffer.
@@ -53,36 +133,85 @@ void compute_sha1_of_buffer(char *outbuff, char *buffer, size_t buffer_len){
  * broadcast messages
  */ 
 void * scan_for_file_changes_thread(void * time_interval){
-	struct dir_files_status_list * currentDir, *l;
-	UNUSED(l);
+	struct dir_files_status_list * currentDir, *currTmp, *watchedTmp, *swap, * result;
+
 	while(1){
 	
 		printf("\n Dir Thread is here!! \n");
 		
 		currentDir = listWatchedDir(watched_dir);
-		SGLIB_LIST_MAP_ON_ELEMENTS(struct dir_files_status_list, watched_files, l, next, {
+		currTmp = currentDir;
+		watchedTmp = watched_files;
 		
-			/*Same files */
-			if(strcmp(l->filename, currentDir->filename) ==0 ){
-				/* Case Modified file */
-				if(currentDir->modifictation_time_from_epoch > l->modifictation_time_from_epoch){
-					printf("File %s modified \n", l->filename);
+		while(watchedTmp != NULL){
+			
+			/* End of list case, deleted file */
+			if(currTmp == NULL){
+				while(watchedTmp){
+					printf("File %s deleted \n", watchedTmp->filename);
+					watchedTmp = watchedTmp->next;
 				}
-				
+				break;
+			}
+			/*Same files */
+			else if( (strcmp(watchedTmp->filename, currTmp->filename) ==0) ){
+				/* Case Modified file */
+				if( (currTmp->modifictation_time_from_epoch != watchedTmp->modifictation_time_from_epoch) || 
+						(strncmp(watchedTmp->sha1sum, currTmp->sha1sum, 20) !=0 ) ||
+							((watchedTmp->size_in_bytes - currTmp->size_in_bytes) !=0) ){
+					printf("File %s modified \n", watchedTmp->filename);
+				}
+				watchedTmp = watchedTmp->next;
+				currTmp = currTmp->next;
 			}
 			
 			/* Different files */
 			else{
-				printf("File %s changed! \n",l->filename);
+				SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, currentDir, watchedTmp, ILIST_COMPARATOR, next, result)
+				if(result == NULL){
+					printf("File %s changed -> Deleted! \n",watchedTmp->filename);	
+					watchedTmp = watchedTmp->next;
+					
+				}
+				else{
+					printf("File %s changed -> Added! \n",currTmp->filename);
+					currTmp = currTmp->next;
+				}
 			
 			}
-			currentDir = currentDir->next;
-		})
+			
+		}
+		/* If got more, file added! */
+		while(currTmp != NULL){
+			printf("File %s Added \n",currTmp->filename);
+			currTmp = currTmp->next;
+		}
+		swap = watched_files; 
+		watched_files =currentDir;
 		
-		sleep((intptr_t)time_interval);
+		dir_list_free(swap);
+		//PrintWatchedDir(watched_files);
+		sleep((intptr_t)5);
 	}
 
 
+}
+
+
+/**
+ * Free a list of  dir_files_status_list elements
+ */
+void dir_list_free(struct dir_files_status_list * dirList){
+	dir_files_status_list *l;
+	
+	UNUSED(l);
+	printf("-> Trying to Free memory . .\n");
+	SGLIB_LIST_MAP_ON_ELEMENTS(struct dir_files_status_list, dirList, l, next, {
+			free(l->filename);
+			free(l->owner);
+			free(l->group);
+			free(l);
+	});
 }
 
 /** 
@@ -92,13 +221,14 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 	dir_files_status_list *l;
 	char datestring[256];
 	struct tm time;
+	int i;
 	
 	/* print the sorted list 
 	printf("-> Sorting the watched Files List . .\n");
 	SGLIB_LIST_SORT(struct dir_files_status_list, dirList, ILIST_COMPARATOR, next); */
 	UNUSED(l);
 	printf("-> Printing the watched Files List . .\n");
-	printf("Mode\t   Owner  Group\t Size\tDate\t\t    Filename \n");
+	printf("Mode\t   Owner  Group\t Size\tDate\t\t    Filename\t\t\tSHA1 \n");
 	SGLIB_LIST_MAP_ON_ELEMENTS(struct dir_files_status_list, dirList, l, next, {
 		localtime_r((&l->modifictation_time_from_epoch), &time);
         /* Get localized date string. */
@@ -113,8 +243,11 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 		printf( (l->permission & S_IROTH) ? "r" : "-");
 		printf( (l->permission & S_IWOTH) ? "w" : "-");
 		printf( (l->permission & S_IXOTH) ? "x" : "-");
-		printf(" %s %s %5jd %s %s \n", l->owner, l->group, l->size_in_bytes, datestring, l->filename);
-	})
+		printf(" %s %s %5jd %s %s \t", l->owner, l->group, l->size_in_bytes, datestring, l->filename);
+		for(i = 0; i < SHA1_BYTES_LEN; i++)
+			printf("%02x", (unsigned char)l->sha1sum[i]);
+		printf(" \n");
+	});
 
 }
 
@@ -260,12 +393,21 @@ main(int argc, char **argv){
 					fprintf(stderr,"Dir_Thread creation failed: %d\n", t1);
 					exit(EXIT_FAILURE);
 				}
-				pthread_join(dir_thread, NULL);
+				//pthread_join(dir_thread, NULL);
 				
 				break;
 			case 'b':
 				broadcast_port = atoi(optarg);
-				/* To check or not to check? */
+				if(!((broadcast_port > 1023) || (broadcast_port <65536))){
+					fprintf(stderr, "Not a Valid Broadcast Port to bind!\n");
+					return EXIT_FAILURE;
+				}
+				if( (t2 = pthread_create( &udp_thread, NULL, udp_receiver_dispatcher_thread, (void *) (intptr_t) broadcast_port) )){
+					fprintf(stderr,"Dir_Thread creation failed: %d\n", t2);
+					exit(EXIT_FAILURE);
+				}
+				pthread_join(udp_thread, NULL);
+				
 				break;
 			default:
 				printf("Usage: cloudbox -n client_name -d directory_to_use -i scan_interval -b broadcast_port\n"

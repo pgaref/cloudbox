@@ -48,6 +48,14 @@
 #include <openssl/sha.h>
 
 /**
+ *  Socket Libraries and dependencies
+ */
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+
+/**
  * An easy way to support boolean type in C
  */
 typedef char boolean;
@@ -60,7 +68,10 @@ typedef char boolean;
  * SHA1 is 160 bit long, equals to 20 bytes
  */
 #define SHA1_BYTES_LEN 20
-
+/**
+ * Maximum size of a datagram in most of the cases! 
+ */
+#define MAXBUF 65535
 
 /**
  * An enum type indicating the type of each message
@@ -117,6 +128,8 @@ extern struct dir_files_status_list * watched_files;
 extern char * watched_dir;
 
 dir_files_status_list * listWatchedDir(char * );
+void PrintWatchedDir(dir_files_status_list * );
+void dir_list_free(struct dir_files_status_list *);
 /*
  * Print mutex, for printing nicely the messages from different threads
  */
@@ -178,7 +191,7 @@ void * scan_for_file_changes_thread(void * time_interval);
  * own will. Of course one of these parameters should be these
  * socket descriptor that accept() call returned.
  */
-void handle_incoming_tcp_connection_thread(void *params);
+void * handle_incoming_tcp_connection_thread(void *params);
 
 
 /**
@@ -186,4 +199,4 @@ void handle_incoming_tcp_connection_thread(void *params);
  * based on the message type, the dispatcher 
  * can fire up a new thread or do a specific job.
  */
-void udp_receiver_dispatcher_thread(void *params);
+void * udp_receiver_dispatcher_thread(void *params);
