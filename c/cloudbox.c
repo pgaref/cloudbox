@@ -331,7 +331,7 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 		printf( (l->permission & S_IROTH) ? "r" : "-");
 		printf( (l->permission & S_IWOTH) ? "w" : "-");
 		printf( (l->permission & S_IXOTH) ? "x" : "-");
-		printf(" %s %s %5jd %s %s \t", l->owner, l->group, l->size_in_bytes, datestring, l->filename);
+		printf(" %s %s %5jd %s %s \t", l->owner, l->group, (intmax_t) l->size_in_bytes, datestring, l->filename);
 		for(i = 0; i < SHA1_BYTES_LEN; i++)
 			printf("%02x", (unsigned char)l->sha1sum[i]);
 		printf(" \n");
