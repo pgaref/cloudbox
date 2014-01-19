@@ -36,7 +36,14 @@ pthread_mutex_t print_mutex;
  */
 pthread_mutex_t file_list_mutex;
 
-
+char * udp_packet_clientName(char * packet){
+	char * c_name = (char *) malloc(255);
+	int count =3 , i=0;
+	while(packet[count] != 0){
+		c_name[i++] = packet[count++];
+	}c_name[i] = '\0';
+	return c_name;
+}
 
 /*
  * Decode UDP packet according to the given instructions!
@@ -124,16 +131,15 @@ void * udp_receiver_dispatcher_thread(void *port){
 	unsigned sinlen;
 	char buffer[MAXBUF];
 	struct sockaddr_in sock_in;
-	struct sockaddr_in localAddress;
-    socklen_t addressLength =  sizeof(localAddress);
-	
 	sinlen = sizeof(struct sockaddr_in);
+	
+	
 	memset(&sock_in, 0, sinlen);
 	/* Create Socket */
 	sock = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if(sock == -1)
 		perror("Cloudbox Error: UDP Broadcast Server Socket failed!\n");
-	getsockname(sock, (struct sockaddr*)&localAddress, &addressLength);
+	
 	/*Fill in server's sockaddr_in */
 	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
 	sock_in.sin_port = htons(5555);
@@ -144,11 +150,10 @@ void * udp_receiver_dispatcher_thread(void *port){
 	if(status == -1)
 		perror("Cloudbox Error: UDP Broadcast Server Bind-ing failed\n");
 	
-	status = getsockname(sock, (struct sockaddr *)&sock_in, &sinlen);
-	printf("Sock port %d\n",htons(sock_in.sin_port));
-	
 	buflen = MAXBUF;
+	pthread_mutex_lock(&print_mutex);
 	printf("UDP SERVER: waiting for data from client\n");
+	pthread_mutex_unlock(&print_mutex);
 	while(1)
 	{
 		memset(buffer, 0, buflen);
@@ -157,9 +162,9 @@ void * udp_receiver_dispatcher_thread(void *port){
 			perror("Cloudbox Error: UDP Broadcast Server recvfrom call failed \n");
 		
 		/* Decoding if message is not from localhost!! */
-        if(strcmp(inet_ntoa(sock_in.sin_addr),inet_ntoa(localAddress.sin_addr))!= 0)	
-		    udp_packet_decode(buffer);
-		
+        if(strcmp(udp_packet_clientName(buffer),client_name)== 0)
+            continue;
+		udp_packet_decode(buffer);
 		if(!strcmp(buffer, "quit")){
 			printf("Quiting. . .\n");
 			break;
