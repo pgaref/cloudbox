@@ -94,8 +94,6 @@ void udp_packet_decode(char * packet){
 	count++;
 	
 	memcpy(&tcp_port, &pak[count], 2);
-	
-    tcp_port = 256*pak[count] + pak[count+1];
 	count+=2;
 	
 	memcpy(&clk, &pak[count],8);
