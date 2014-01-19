@@ -17,8 +17,100 @@
  * Usage:
  * ./bserver
  */
-
+#define SHA1_BYTES_LEN 20
 #define MAXBUF 65535
+typedef enum {
+	STATUS_MSG = 0x1, 				/**< A status message */
+	NO_CHANGES_MSG = 0x2, 			/**< Client's directory is clean */
+	NEW_FILE_MSG = 0x3, 			/**< A new file added at the client */
+	FILE_CHANGED_MSG = 0x4, 		/**< A file changed at the client */
+	FILE_DELETED_MSG = 0x5, 		/**< A file deleted at the client */
+	FILE_TRANSFER_REQUEST = 0x6,	/**< Another client wants our file */
+	FILE_TRANSFER_OFFER = 0x7,		/**< Another client sends us a file */
+	DIR_EMPTY = 0x08,				/**< The directory of the client has no files */
+	NOP = 0xff						/**< Do nothing. Use it for debug reasons */
+} msg_type_t;
+
+
+/**
+ * A linked list (double or single, choose what you want)
+ * that keeps appropriate info for each file at the 
+ * directory that the client scans for changes.
+ * 
+ * NOTE: Feel free to add your own fields
+ */
+typedef struct dir_files_status_list {
+	char *filename;
+	off_t size_in_bytes;
+	char sha1sum[SHA1_BYTES_LEN];
+	time_t modifictation_time_from_epoch;
+	/* Extra fields! */
+	char  * owner;
+	char  * group;
+	mode_t  permission;
+
+	struct dir_files_status_list *next;
+} dir_files_status_list;
+
+
+/*
+ * Decode UDP packet according to the given instructions!
+ */
+void udp_packet_decode(char * packet){
+	char pak[MAXBUF];
+	memcpy(pak, packet,MAXBUF);
+	char client_name[255];
+	int count =3 , i=0;
+	char tmp[2];
+	tmp[0] = pak[0];
+	tmp[1] = pak[1];
+	
+	switch(tmp[0]){
+		case(1):
+			printf("\tSTATUS_MSG \n");
+			break;
+		case(2):
+			printf("\tNO_CHANGES_MSG \n");
+			break;
+		case(3):
+			printf("\tNEW_FILE_MSG \n");
+			break;
+		case(4):
+			printf("\tFILE_CHANGED_MSG \n");
+			break;
+		case(5):
+			printf("\tFILE_DELETED_MSG \n");
+			break;
+		case(6):
+			printf("\tFILE_TRANSFER_REQUEST \n");
+			break;
+		case(7):
+			printf("\tFILE_TRANSFER_OFFER \n");
+			break;
+		case(8):
+			printf("\tDIR_EMPTY \n");
+			break;
+		case(-1):
+			printf("\tNOP \n");
+			break;
+		default:
+			printf("Not a Valid Status: %d %d \n", tmp[0],tmp[1]);
+			break;
+	}
+	
+	if(pak[2] != 0)
+		perror("Not a Valid Message Field Client_name\n");
+	while(i <11){
+		client_name[i++] = pak[count++];
+		printf("Got %d, Stored %d \n", client_name[i-1],pak[count-1] );
+	}client_name[i] = '\0';
+	
+	printf("\tClient Name: %s len:%d i:%d count:%d\n", client_name, strlen(client_name), i,count);
+	
+	
+
+}
+
 
 int main()
 {
@@ -56,6 +148,8 @@ int main()
 		status = recvfrom(sock, buffer, buflen, 0, (struct sockaddr *)&sock_in, &sinlen);
 		if(status == -1)
 			perror("Cloudbox Error: UDP Broadcast Server recvfrom call failed \n");
+		//Decode!
+		udp_packet_decode(buffer);
 		
 		if(!strcmp(buffer, "quit")){
 			printf("Quiting. . .\n");
