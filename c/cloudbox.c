@@ -124,6 +124,8 @@ void * udp_receiver_dispatcher_thread(void *port){
 	unsigned sinlen;
 	char buffer[MAXBUF];
 	struct sockaddr_in sock_in;
+	struct sockaddr_in localAddress;
+    socklen_t addressLength =  sizeof(localAddress);
 	
 	sinlen = sizeof(struct sockaddr_in);
 	memset(&sock_in, 0, sinlen);
@@ -131,7 +133,7 @@ void * udp_receiver_dispatcher_thread(void *port){
 	sock = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if(sock == -1)
 		perror("Cloudbox Error: UDP Broadcast Server Socket failed!\n");
-	
+	getsockname(sock, (struct sockaddr*)&localAddress, &addressLength);
 	/*Fill in server's sockaddr_in */
 	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
 	sock_in.sin_port = htons(5555);
@@ -153,8 +155,10 @@ void * udp_receiver_dispatcher_thread(void *port){
 		status = recvfrom(sock, buffer, buflen, 0, (struct sockaddr *)&sock_in, &sinlen);
 		if(status == -1)
 			perror("Cloudbox Error: UDP Broadcast Server recvfrom call failed \n");
-		/* Decoding part!! */
-		udp_packet_decode(buffer);
+		
+		/* Decoding if message is not from localhost!! */
+        if(strcmp(inet_ntoa(sock_in.sin_addr),inet_ntoa(localAddress.sin_addr))!= 0)	
+		    udp_packet_decode(buffer);
 		
 		if(!strcmp(buffer, "quit")){
 			printf("Quiting. . .\n");
@@ -289,7 +293,7 @@ void dir_list_free(struct dir_files_status_list * dirList){
 	dir_files_status_list *l;
 	
 	UNUSED(l);
-	printf("-> Trying to Free memory . .\n");
+	//printf("-> Trying to Free memory . .\n");
 	SGLIB_LIST_MAP_ON_ELEMENTS(struct dir_files_status_list, dirList, l, next, {
 			free(l->filename);
 			free(l->owner);
