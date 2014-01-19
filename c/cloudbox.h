@@ -128,6 +128,7 @@ extern struct dir_files_status_list * watched_files;
 extern char * watched_dir;
 extern int broadcast_port;
 extern char *client_name;
+extern int TCP_PORT;
 
 dir_files_status_list * listWatchedDir(char * );
 void PrintWatchedDir(dir_files_status_list * );
@@ -209,3 +210,4 @@ void * udp_receiver_dispatcher_thread(void *params);
 void udp_packet_encodeNsend();
 int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t mod_time);
 void udp_packet_send();
+char * udp_packet_clientName(char * packet);

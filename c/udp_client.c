@@ -1,6 +1,19 @@
 #include "cloudbox.h"
 extern int broadcast_port;
 extern char *client_name;
+extern int TCP_PORT;
+
+/**
+ * Decode a message and return the client name
+ */
+char * udp_packet_clientName(char * packet){
+	char * c_name = (char *) malloc(255);
+	int count =3 , i=0;
+	while(packet[count] != 0){
+		c_name[i++] = packet[count++];
+	}c_name[i] = '\0';
+	return c_name;
+}
 
 /*
  * Encode UDP packet_to_send according to the given instructions!
@@ -72,7 +85,7 @@ void udp_packet_send(){
 	sock_in.sin_port = htons(broadcast_port); /* port number */
 	sock_in.sin_family = PF_INET;
 	
-	buflen = udp_packet_encode(STATUS_MSG,client_name,4444,time(NULL));
+	buflen = udp_packet_encode(STATUS_MSG,client_name,TCP_PORT,time(NULL));
 	status = sendto(sock, packet_to_send, buflen, 0, (struct sockaddr *)&sock_in, sinlen);
 	if (status ==-1)
 		perror("Cloudbox Error: UDP Broadcast Client sendto call failed");

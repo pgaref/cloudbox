@@ -14,7 +14,8 @@ char * watched_dir;
  */
 extern int alphasort();
 extern char *strdup(const char *s);
- 
+extern int TCP_PORT;
+
 /* Much more convenient to make the global
  * And share them between files using extern!
  */
@@ -36,14 +37,6 @@ pthread_mutex_t print_mutex;
  */
 pthread_mutex_t file_list_mutex;
 
-char * udp_packet_clientName(char * packet){
-	char * c_name = (char *) malloc(255);
-	int count =3 , i=0;
-	while(packet[count] != 0){
-		c_name[i++] = packet[count++];
-	}c_name[i] = '\0';
-	return c_name;
-}
 
 /*
  * Decode UDP packet according to the given instructions!
@@ -176,6 +169,7 @@ void * udp_receiver_dispatcher_thread(void *port){
 	}
 	shutdown(sock, 2);
 	close(sock);
+	return 0;
 }
 /**
  * Computes the SHA1 checksum of a file.
@@ -225,7 +219,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 
 	while(1){
 	
-		printf("\n Dir Thread is here!! \n");
+		printf("\n=>Dir Thread is here!! \n");
 		
 		/*
 		 * Send A UDP Status_MSG, still under development!
@@ -452,6 +446,11 @@ main(int argc, char **argv){
 	/* Initialize the List Head */
 	watched_files = NULL;
 	
+	/* Initialize the TCP Sever Thread! */
+	if( (t3 = pthread_create( &tcp_thread, NULL, handle_incoming_tcp_connection_thread, (void *) (intptr_t) 1) )){
+					fprintf(stderr,"TCP Sever Thread creation failed: %d\n", t3);
+					exit(EXIT_FAILURE);
+	}
 	
 	while ((opt = getopt(argc, argv, "hn:d:i:b:")) != -1) {
 		switch(opt){
