@@ -1,6 +1,5 @@
 #include "cloudbox.h"
 #include "sglib.h"
-
 /*
  * The list that holds all the current watched files.
  * 
@@ -15,6 +14,13 @@ char * watched_dir;
  */
 extern int alphasort();
 extern char *strdup(const char *s);
+ 
+/* Much more convenient to make the global
+ * And share them between files using extern!
+ */
+int broadcast_port;
+char *client_name;
+
 
 #define UNUSED(x) (void)(x)
 #define ILIST_COMPARATOR(e1, e2) (strcasecmp(e1->filename, e2->filename))
@@ -30,6 +36,83 @@ pthread_mutex_t print_mutex;
  */
 pthread_mutex_t file_list_mutex;
 
+
+
+/*
+ * Decode UDP packet according to the given instructions!
+ */
+void udp_packet_decode(char * packet){
+	char pak[MAXBUF];
+	time_t clk;
+	char client_name[255];
+	short tcp_port;
+	int count =3 , i=0;
+	char tmp[2];
+	
+	memcpy(pak, packet,MAXBUF);
+	tmp[0] = pak[0];
+	tmp[1] = pak[1];
+	pthread_mutex_lock(&print_mutex);
+	switch(tmp[0]){
+		case(1):
+			printf("\tSTATUS_MSG \n");
+			break;
+		case(2):
+			printf("\tNO_CHANGES_MSG \n");
+			break;
+		case(3):
+			printf("\tNEW_FILE_MSG \n");
+			break;
+		case(4):
+			printf("\tFILE_CHANGED_MSG \n");
+			break;
+		case(5):
+			printf("\tFILE_DELETED_MSG \n");
+			break;
+		case(6):
+			printf("\tFILE_TRANSFER_REQUEST \n");
+			break;
+		case(7):
+			printf("\tFILE_TRANSFER_OFFER \n");
+			break;
+		case(8):
+			printf("\tDIR_EMPTY \n");
+			break;
+		case(-1):
+			printf("\tNOP \n");
+			break;
+		default:
+			printf("Not a Valid Status: %d %d \n", tmp[0],tmp[1]);
+			break;
+	}
+	
+	if(pak[2] != 0)
+		perror("Not a Valid Message Field Client_name\n");
+	while(pak[count] != 0){
+		client_name[i++] = pak[count++];
+	}client_name[i] = '\0';
+	count++;
+	
+	memcpy(&tcp_port, &pak[count], 2);
+	count+=2;
+	
+	memcpy(&clk, &pak[count],8);
+	count+=8;
+	/*
+	memcpy(&mod_time, &pak[count],8);
+	count+=8;
+	*/
+	
+	printf("\tClient Name: %s\n", client_name, strlen(client_name), i,count);
+	printf("\tTCP Listening Port: %d \n", tcp_port);
+	printf("\tPacket Sent at: %s \n", ctime(&clk));
+	/*
+	printf("File modification Time %s \n",ctime(&mod_time));
+	*/
+    pthread_mutex_unlock(&print_mutex);
+}
+ 
+ 
 /**
  * Thread that receives UDP broadcast messages and
  * based on the message type, the dispatcher 
@@ -41,7 +124,6 @@ void * udp_receiver_dispatcher_thread(void *port){
 	unsigned sinlen;
 	char buffer[MAXBUF];
 	struct sockaddr_in sock_in;
-	int yes = 1;
 	
 	sinlen = sizeof(struct sockaddr_in);
 	memset(&sock_in, 0, sinlen);
@@ -52,7 +134,7 @@ void * udp_receiver_dispatcher_thread(void *port){
 	
 	/*Fill in server's sockaddr_in */
 	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
-	sock_in.sin_port = htons((intptr_t)port);
+	sock_in.sin_port = htons(5555);
 	sock_in.sin_family = PF_INET;
 	
 	/*Bind server socket and listen for incoming client */
@@ -64,30 +146,27 @@ void * udp_receiver_dispatcher_thread(void *port){
 	printf("Sock port %d\n",htons(sock_in.sin_port));
 	
 	buflen = MAXBUF;
-	printf("SERVER: waiting for data from client\n");
+	printf("UDP SERVER: waiting for data from client\n");
 	while(1)
 	{
 		memset(buffer, 0, buflen);
 		status = recvfrom(sock, buffer, buflen, 0, (struct sockaddr *)&sock_in, &sinlen);
 		if(status == -1)
 			perror("Cloudbox Error: UDP Broadcast Server recvfrom call failed \n");
+		/* Decoding part!! */
+		udp_packet_decode(buffer);
 		
 		if(!strcmp(buffer, "quit")){
 			printf("Quiting. . .\n");
 			break;
 		}
-		printf("SERVER: read %d bytes from IP %s:%d(%s)\n", status,
+		pthread_mutex_lock(&print_mutex);
+		printf("UDP SERVER: read %d bytes from IP %s:%d(%s)\n", status,
 		       inet_ntoa(sock_in.sin_addr),sock_in.sin_port, buffer);
-		
-		
-		//printf("sendto Status = %d\n", status);
+		pthread_mutex_unlock(&print_mutex);
 	}
 	shutdown(sock, 2);
 	close(sock);
-	
-	
-	
-	
 }
 /**
  * Computes the SHA1 checksum of a file.
@@ -138,6 +217,11 @@ void * scan_for_file_changes_thread(void * time_interval){
 	while(1){
 	
 		printf("\n Dir Thread is here!! \n");
+		
+		/*
+		 * Send A UDP Status_MSG, still under development!
+		 */
+		 udp_packet_send();
 		
 		currentDir = listWatchedDir(watched_dir);
 		currTmp = currentDir;
@@ -223,6 +307,7 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 	struct tm time;
 	int i;
 	
+	pthread_mutex_lock(&print_mutex);
 	/* print the sorted list 
 	printf("-> Sorting the watched Files List . .\n");
 	SGLIB_LIST_SORT(struct dir_files_status_list, dirList, ILIST_COMPARATOR, next); */
@@ -248,7 +333,7 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 			printf("%02x", (unsigned char)l->sha1sum[i]);
 		printf(" \n");
 	});
-
+    pthread_mutex_unlock(&print_mutex);
 }
 
 /** 
@@ -342,8 +427,6 @@ int
 main(int argc, char **argv){
 	int opt;
 	int scan_interval;
-	int broadcast_port;
-	char *client_name;
 	
 	/*
 	 * Define the threads needed in our case

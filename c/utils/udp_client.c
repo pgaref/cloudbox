@@ -6,8 +6,8 @@
 #include <netdb.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <time.h>
 #include <arpa/inet.h>
-
 
 /*
  * build instructions
@@ -29,7 +29,7 @@
  * send by the client.
  * 
  * Message type should consist the TWO FIRST BYTES
- * of each packet if necessary. It helps the receiver
+ * of each packet_to_send if necessary. It helps the receiver
  * to figure out what to do.
  * 
  * NOTE: By default enum types are integers so they
@@ -70,26 +70,37 @@ typedef struct dir_files_status_list {
 } dir_files_status_list;
 
 /*
- * Encode UDP packet according to the given instructions!
+ * Encode UDP packet_to_send according to the given instructions!
  */
- char packet[MAXBUF];
-int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port){//, time_t, curr_time, time_t mod_time, char * filename, char *sha){
-	printf("wtf ?? %s \n",client_name);
+ char packet_to_send[MAXBUF];
+int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t mod_time){//, time_t, curr_time, time_t mod_time, char * filename, char *sha){
+	
 	int packet_count =0, i=0;
 	short b = (short) type;
-	memcpy(&packet, &b, 2);
-	packet[2] = 0;
+	time_t clk = time(NULL);
+    //printf("%s", ctime(&clk))
+	memcpy(&packet_to_send, &b, 2);
+	packet_to_send[2] = 0;
 	packet_count =3;
 	for(i = 0; i < strlen(client_name); i++){
-		packet[packet_count++] = client_name[i];
-		printf("i %d count %d pak %c \n", i, packet_count ,packet[packet_count-1]);
+		packet_to_send[packet_count++] = client_name[i];
 	}
-	packet[packet_count] = 0;
+	packet_to_send[packet_count++] = 0;
+	b = (short)tcp_port;
+	memcpy(&packet_to_send[packet_count], &b , 2);
+	packet_count+=2;
+	memcpy(&packet_to_send[packet_count], &clk, 8);
+	packet_count+=8;
+	memcpy(&packet_to_send[packet_count], &mod_time,8);
+	packet_count+=8;
 	
 	
 	printf("TYPE : %d \n", type);
-	printf("Pak : %d %d \n", packet[0], packet[1]);
+	printf("Pak : %d %d \n", packet_to_send[0], packet_to_send[1]);
+	printf("Tcp Port: %d \n", b);
 	printf("Size: %d\n", packet_count);
+	printf("Current Time %s \n",ctime(&clk));
+	printf("File modification Time %s \n",ctime(&mod_time));
 	
 	return packet_count;
 
@@ -133,9 +144,9 @@ int main(int argc, char*argv[])
 	sock_in.sin_family = PF_INET;
 	
 	char * test_send = "BickDick";
-	buflen = udp_packet_encode(STATUS_MSG,test_send,44);
+	buflen = udp_packet_encode(STATUS_MSG,test_send,4444,time(NULL));
 	printf("ERa!  %d \n",buflen);
-	status = sendto(sock, packet, buflen, 0, (struct sockaddr *)&sock_in, sinlen);
+	status = sendto(sock, packet_to_send, buflen, 0, (struct sockaddr *)&sock_in, sinlen);
 	if (status ==-1)
 		perror("Cloudbox Error: UDP Broadcast Client sendto call failed");
 	

@@ -6,6 +6,7 @@
 #include <netdb.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <time.h>
 #include <arpa/inet.h>
 
 
@@ -58,10 +59,13 @@ typedef struct dir_files_status_list {
  */
 void udp_packet_decode(char * packet){
 	char pak[MAXBUF];
-	memcpy(pak, packet,MAXBUF);
+	time_t clk, mod_time;
 	char client_name[255];
+	short tcp_port;
 	int count =3 , i=0;
 	char tmp[2];
+	
+	memcpy(pak, packet,MAXBUF);
 	tmp[0] = pak[0];
 	tmp[1] = pak[1];
 	
@@ -100,14 +104,31 @@ void udp_packet_decode(char * packet){
 	
 	if(pak[2] != 0)
 		perror("Not a Valid Message Field Client_name\n");
-	while(i <11){
+	while(pak[count] != 0){
 		client_name[i++] = pak[count++];
-		printf("Got %d, Stored %d \n", client_name[i-1],pak[count-1] );
 	}client_name[i] = '\0';
+	count++;
+	
+	memcpy(&tcp_port, &pak[count], 2);
+	count+=2;
+	
+	memcpy(&clk, &pak[count],8);
+	count+=8;
+	/*
+	memcpy(&mod_time, &pak[count],8);
+	count+=8;
+	*/
+	
+	
+	
+	
 	
 	printf("\tClient Name: %s len:%d i:%d count:%d\n", client_name, strlen(client_name), i,count);
-	
-	
+	printf("\tTCP Listening Port: %d \n", tcp_port);
+	printf("\tPacket Sent at: %s \n", ctime(&clk));
+	/*
+	printf("File modification Time %s \n",ctime(&mod_time));
+	*/
 
 }
 
@@ -141,7 +162,7 @@ int main()
 	printf("Sock port %d\n",htons(sock_in.sin_port));
 	
 	buflen = MAXBUF;
-	printf("SERVER: waiting for data from client\n");
+	printf("UDP SERVER: waiting for data from client\n");
 	while(1)
 	{
 		memset(buffer, 0, buflen);
@@ -155,11 +176,9 @@ int main()
 			printf("Quiting. . .\n");
 			break;
 		}
-		printf("SERVER: read %d bytes from IP %s:%d(%s)\n", status,
+		printf("UDP SERVER: read %d bytes from IP %s:%d(%s)\n", status,
 		       inet_ntoa(sock_in.sin_addr),sock_in.sin_port, buffer);
 		
-		
-		//printf("sendto Status = %d\n", status);
 	}
 	shutdown(sock, 2);
 	close(sock);

@@ -126,6 +126,8 @@ typedef struct dir_files_status_list {
  */
 extern struct dir_files_status_list * watched_files;
 extern char * watched_dir;
+extern int broadcast_port;
+extern char *client_name;
 
 dir_files_status_list * listWatchedDir(char * );
 void PrintWatchedDir(dir_files_status_list * );
@@ -200,3 +202,10 @@ void * handle_incoming_tcp_connection_thread(void *params);
  * can fire up a new thread or do a specific job.
  */
 void * udp_receiver_dispatcher_thread(void *params);
+
+/**
+ * Encode a packet according to the fields and send it!
+ */
+void udp_packet_encodeNsend();
+int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t mod_time);
+void udp_packet_send();
