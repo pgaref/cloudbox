@@ -41,14 +41,14 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 	memcpy(&packet_to_send[packet_count], &mod_time,8);
 	packet_count+=8;
 	
-	
+	/*
 	printf("TYPE : %d \n", type);
 	printf("Pak : %d %d \n", packet_to_send[0], packet_to_send[1]);
 	printf("Tcp Port: %u \n", b);
 	printf("Size: %d\n", packet_count);
 	printf("Current Time %s \n",ctime(&clk));
 	printf("File modification Time %s \n",ctime(&mod_time));
-	
+	*/
 	return packet_count;
 
 }

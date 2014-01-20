@@ -45,7 +45,7 @@ void udp_packet_decode(char * packet){
 	char pak[MAXBUF];
 	time_t clk;
 	char client_name[255];
-	short tcp_port;
+	uint16_t tcp_port;
 	int count =3 , i=0;
 	char tmp[2];
 	
@@ -104,7 +104,7 @@ void udp_packet_decode(char * packet){
 	*/
 	
 	printf("\tClient Name: %s\n", client_name, strlen(client_name), i,count);
-	printf("\tTCP Listening Port: %d \n", tcp_port);
+	printf("\tTCP Listening Port: %u \n", tcp_port);
 	printf("\tPacket Sent at: %s \n", ctime(&clk));
 	/*
 	printf("File modification Time %s \n",ctime(&mod_time));
@@ -277,7 +277,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 		watched_files =currentDir;
 		
 		dir_list_free(swap);
-		//PrintWatchedDir(watched_files);
+		PrintWatchedDir(watched_files);
 		sleep((intptr_t)5);
 	}
 
