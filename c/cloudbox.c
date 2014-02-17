@@ -216,7 +216,7 @@ void compute_sha1_of_buffer(char *outbuff, char *buffer, size_t buffer_len){
  */ 
 void * scan_for_file_changes_thread(void * time_interval){
 	struct dir_files_status_list * currentDir, *currTmp, *watchedTmp, *swap, * result;
-
+	int msglen;
 	while(1){
 	
 		printf("\n=>Dir Thread is here!! \n");
@@ -224,7 +224,8 @@ void * scan_for_file_changes_thread(void * time_interval){
 		/*
 		 * Send A UDP Status_MSG, still under development!
 		 */
-		 udp_packet_send();
+		msglen = udp_packet_encode(STATUS_MSG,client_name,TCP_PORT,time(NULL));
+		udp_packet_send(msglen);
 		
 		currentDir = listWatchedDir(watched_dir);
 		currTmp = currentDir;

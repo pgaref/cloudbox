@@ -53,8 +53,8 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 
 }
 
-void udp_packet_send(){
-	int sock, status, buflen, sinlen;
+void udp_packet_send(int buflen){
+	int sock, status, sinlen;
 	struct sockaddr_in sock_in;
 	int yes = 1;
 	
@@ -87,7 +87,7 @@ void udp_packet_send(){
 	sock_in.sin_port = htons(broadcast_port); /* port number */
 	sock_in.sin_family = PF_INET;
 	
-	buflen = udp_packet_encode(STATUS_MSG,client_name,TCP_PORT,time(NULL));
+	
 	status = sendto(sock, packet_to_send, buflen, 0, (struct sockaddr *)&sock_in, sinlen);
 	if (status ==-1)
 		perror("Cloudbox Error: UDP Broadcast Client sendto call failed");

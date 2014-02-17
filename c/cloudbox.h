@@ -209,5 +209,5 @@ void * udp_receiver_dispatcher_thread(void *params);
  */
 void udp_packet_encodeNsend();
 int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t mod_time);
-void udp_packet_send();
+void udp_packet_send(int buflen);
 char * udp_packet_clientName(char * packet);
