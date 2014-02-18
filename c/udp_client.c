@@ -48,7 +48,7 @@ char * udp_packet_clientName(char * packet){
 
 /*
  * Encode UDP packet_to_send according to the given instructions!
- * Fields containg numbers are SWAPED in case the machine is a little endian!
+ * Fields containg numbers are SWAPED in case the machine is a big endian!
  */
  char packet_to_send[MAXBUF];
 int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t mod_time){//, time_t, curr_time, time_t mod_time, char * filename, char *sha){
@@ -57,9 +57,9 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 	uint16_t b = (uint16_t) type;
 	time_t clk = time(NULL);
 	if(is_big_endian()){
+		SWAP(b);
 		memcpy(&packet_to_send, &b, 2);
 	}else{
-		SWAP(b);
 		memcpy(&packet_to_send, &b, 2);
 	}
 	packet_to_send[2] = 0;
@@ -70,9 +70,9 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 	packet_to_send[packet_count++] = 0;
 	b = (uint16_t)tcp_port;
 	if(is_big_endian()){
+		SWAP(b);
 		memcpy(&packet_to_send[packet_count], &b , 2);
 	}else{
-		SWAP(b);
 		memcpy(&packet_to_send[packet_count], &b , 2);
 	}
 	packet_count+=2;
@@ -80,9 +80,9 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 	memcpy(&packet_to_send[packet_count], &clk, 8);
 	packet_count+=8;
 	if(is_big_endian()){
+		SWAP(mod_time);
 		memcpy(&packet_to_send[packet_count], &mod_time,8);
 	}else{
-		SWAP(mod_time);
 		memcpy(&packet_to_send[packet_count], &mod_time,8);
 	}
 	packet_count+=8;
@@ -104,9 +104,9 @@ int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, ti
 	uint16_t b = (uint16_t) type;
 	time_t clk = time(NULL);
 	if(is_big_endian()){
+		SWAP(b);
 		memcpy(&packet_to_send, &b, 2);
 	}else{
-		SWAP(b);
 		memcpy(&packet_to_send, &b, 2);
 	}
 	packet_to_send[2] = 0;
@@ -117,9 +117,9 @@ int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, ti
 	packet_to_send[packet_count++] = 0;
 	b = (uint16_t)tcp_port;
 	if(is_big_endian()){
+		SWAP(b);
 		memcpy(&packet_to_send[packet_count], &b , 2);
 	}else{
-		SWAP(b);
 		memcpy(&packet_to_send[packet_count], &b , 2);
 	}
 	packet_count+=2;
@@ -127,16 +127,16 @@ int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, ti
 	memcpy(&packet_to_send[packet_count], &clk, 8);
 	packet_count+=8;
 	if(is_big_endian()){
+		SWAP(curr_time);
 		memcpy(&packet_to_send[packet_count], &curr_time,8);
 	}else{
-		SWAP(curr_time);
 		memcpy(&packet_to_send[packet_count], &curr_time,8);
 	}
 	packet_count+=8;
 	if(is_big_endian()){
+		SWAP(mod_time);
 		memcpy(&packet_to_send[packet_count], &mod_time,8);
 	}else{
-		SWAP(mod_time);
 		memcpy(&packet_to_send[packet_count], &mod_time,8);
 	}
 	packet_count+=8;
@@ -150,9 +150,9 @@ int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, ti
 	memcpy(&packet_to_send[packet_count], &sha,20);
 	packet_count+=20;
 	if(is_big_endian()){
+		SWAP(file_size);
 		memcpy(&packet_to_send[packet_count], &file_size,8);
 	}else{
-		SWAP(file_size);
 		memcpy(&packet_to_send[packet_count], &file_size,8);
 	}
 	packet_count+=8;
