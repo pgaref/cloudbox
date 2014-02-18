@@ -98,6 +98,13 @@ typedef enum {
 } msg_type_t;
 
 
+typedef struct cloudbox_stats{
+	int 	msg_num;
+	double 	mesageSize;
+	double 	fileSize;
+	float	averageSpeed;
+}cloudboxStats;
+
 /**
  * A linked list (double or single, choose what you want)
  * that keeps appropriate info for each file at the 
@@ -106,10 +113,10 @@ typedef enum {
  * NOTE: Feel free to add your own fields
  */
 typedef struct dir_files_status_list {
-	char *filename;
-	off_t size_in_bytes;
-	char sha1sum[SHA1_BYTES_LEN];
-	time_t modifictation_time_from_epoch;
+	char *	filename;
+	off_t 	size_in_bytes;
+	char 	sha1sum[SHA1_BYTES_LEN];
+	time_t 	modifictation_time_from_epoch;
 	/* Extra fields! */
 	char  * owner;
 	char  * group;
@@ -209,5 +216,6 @@ void * udp_receiver_dispatcher_thread(void *params);
  */
 void udp_packet_encodeNsend();
 int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t mod_time);
+int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t curr_time, time_t mod_time, char * filename, char *sha,off_t file_size);
 void udp_packet_send(int buflen);
 char * udp_packet_clientName(char * packet);

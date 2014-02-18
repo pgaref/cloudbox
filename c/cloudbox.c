@@ -267,6 +267,9 @@ void * scan_for_file_changes_thread(void * time_interval){
 				}
 				else{
 					printf("File %s changed -> Added! \n",currTmp->filename);
+					/* Send a file Added mesage!!! */
+					msglen = udp_file_packet_encode(NEW_FILE_MSG,client_name,TCP_PORT,time(NULL),currTmp->modifictation_time_from_epoch, currTmp->filename,currTmp->sha1sum,currTmp->size_in_bytes);
+					udp_packet_send(msglen);
 					currTmp = currTmp->next;
 					dirChangedFlag = 1;
 				}
