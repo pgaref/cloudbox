@@ -103,7 +103,7 @@ void udp_packet_decode(char * packet){
 	count+=8;
 	*/
 	
-	printf("\tClient Name: %s\n", client_name, strlen(client_name), i,count);
+	printf("\tClient Name: %s\n", client_name);
 	printf("\tTCP Listening Port: %u \n", tcp_port);
 	printf("\tPacket Sent at: %s \n", ctime(&clk));
 	/*

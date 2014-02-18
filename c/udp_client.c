@@ -3,6 +3,37 @@ extern int broadcast_port;
 extern char *client_name;
 extern int TCP_PORT;
 
+
+
+/*
+ * Check Machine Endianess
+ */
+int is_big_endian(void)
+{	
+	union {
+        uint32_t i;
+        char c[4];
+    } e = { 0x01000000 };
+    return e.c[0]==1;
+}
+
+/* 
+ * Swap method for big to little endian  Coversions!
+ */
+#define SWAP(x) SwapBytes(&x, sizeof(x));
+void SwapBytes(void *pv, size_t n)
+{
+    char *p = pv;
+    size_t lo, hi;
+    for(lo=0, hi=n-1; hi>lo; lo++, hi--)
+    {
+        char tmp=p[lo];
+        p[lo] = p[hi];
+        p[hi] = tmp;
+    }
+}
+
+
 /**
  * Decode a message and return the client name
  */
@@ -17,6 +48,7 @@ char * udp_packet_clientName(char * packet){
 
 /*
  * Encode UDP packet_to_send according to the given instructions!
+ * Fields containg numbers are SWAPED in case the machine is a little endian!
  */
  char packet_to_send[MAXBUF];
 int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t mod_time){//, time_t, curr_time, time_t mod_time, char * filename, char *sha){
@@ -24,7 +56,12 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 	int packet_count =0, i=0;
 	uint16_t b = (uint16_t) type;
 	time_t clk = time(NULL);
-	memcpy(&packet_to_send, &b, 2);
+	if(is_big_endian()){
+		memcpy(&packet_to_send, &b, 2);
+	}else{
+		SWAP(b);
+		memcpy(&packet_to_send, &b, 2);
+	}
 	packet_to_send[2] = 0;
 	packet_count =3;
 	for(i = 0; i < strlen(client_name); i++){
@@ -32,13 +69,22 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 	}
 	packet_to_send[packet_count++] = 0;
 	b = (uint16_t)tcp_port;
-	
-	memcpy(&packet_to_send[packet_count], &b , 2);
+	if(is_big_endian()){
+		memcpy(&packet_to_send[packet_count], &b , 2);
+	}else{
+		SWAP(b);
+		memcpy(&packet_to_send[packet_count], &b , 2);
+	}
 	packet_count+=2;
 	
 	memcpy(&packet_to_send[packet_count], &clk, 8);
 	packet_count+=8;
-	memcpy(&packet_to_send[packet_count], &mod_time,8);
+	if(is_big_endian()){
+		memcpy(&packet_to_send[packet_count], &mod_time,8);
+	}else{
+		SWAP(mod_time);
+		memcpy(&packet_to_send[packet_count], &mod_time,8);
+	}
 	packet_count+=8;
 	
 	/*
@@ -52,6 +98,81 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 	return packet_count;
 
 }
+int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t curr_time, time_t mod_time, char * filename, char *sha,off_t file_size){
+	
+	int packet_count =0, i=0;
+	uint16_t b = (uint16_t) type;
+	time_t clk = time(NULL);
+	if(is_big_endian()){
+		memcpy(&packet_to_send, &b, 2);
+	}else{
+		SWAP(b);
+		memcpy(&packet_to_send, &b, 2);
+	}
+	packet_to_send[2] = 0;
+	packet_count =3;
+	for(i = 0; i < strlen(client_name); i++){
+		packet_to_send[packet_count++] = client_name[i];
+	}
+	packet_to_send[packet_count++] = 0;
+	b = (uint16_t)tcp_port;
+	if(is_big_endian()){
+		memcpy(&packet_to_send[packet_count], &b , 2);
+	}else{
+		SWAP(b);
+		memcpy(&packet_to_send[packet_count], &b , 2);
+	}
+	packet_count+=2;
+	
+	memcpy(&packet_to_send[packet_count], &clk, 8);
+	packet_count+=8;
+	if(is_big_endian()){
+		memcpy(&packet_to_send[packet_count], &curr_time,8);
+	}else{
+		SWAP(curr_time);
+		memcpy(&packet_to_send[packet_count], &curr_time,8);
+	}
+	packet_count+=8;
+	if(is_big_endian()){
+		memcpy(&packet_to_send[packet_count], &mod_time,8);
+	}else{
+		SWAP(mod_time);
+		memcpy(&packet_to_send[packet_count], &mod_time,8);
+	}
+	packet_count+=8;
+	/* filename copy */
+	packet_to_send[packet_count++] = 0;
+	for(i = 0; i < strlen(filename); i++){
+		packet_to_send[packet_count++] = filename[i];
+	}
+	packet_to_send[packet_count++] = 0;
+	
+	memcpy(&packet_to_send[packet_count], &sha,20);
+	packet_count+=20;
+	if(is_big_endian()){
+		memcpy(&packet_to_send[packet_count], &file_size,8);
+	}else{
+		SWAP(file_size);
+		memcpy(&packet_to_send[packet_count], &file_size,8);
+	}
+	packet_count+=8;
+	
+	pthread_mutex_lock(&print_mutex);
+	printf("---Encoding Complex message---\n");
+	printf("TYPE : %d \n", type);
+	printf("Pak : %d %d \n", packet_to_send[0], packet_to_send[1]);
+	printf("Tcp Port: %u \n", b);
+	printf("Size: %d\n", packet_count);
+	printf("Current Time %s \n",ctime(&clk));
+	printf("File modification Time %s \n",ctime(&curr_time));
+	pthread_mutex_unlock(&print_mutex);
+	
+	return packet_count;
+	
+}
+
+
+
 
 void udp_packet_send(int buflen){
 	int sock, status, sinlen;
