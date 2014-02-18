@@ -118,6 +118,7 @@ void udp_packet_decode(char * packet){
 		memcpy(&mod_time, &pak[count],8);
 		count+=8; count++;
 		
+		i=0;
 		while(pak[count] != 0){
 			file_name[i++] = pak[count++];
 		}file_name[i] = '\0';
