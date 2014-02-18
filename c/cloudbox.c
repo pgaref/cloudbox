@@ -473,7 +473,7 @@ dir_files_status_list * listWatchedDir(char * mydir){
 		tmp->size_in_bytes = statbuf.st_size;
 		tmp->modifictation_time_from_epoch = statbuf.st_mtime;
 		tmp->permission = statbuf.st_mode;
-		compute_sha1_of_file(tmp->sha1sum, tmp->filename);
+		compute_sha1_of_file(tmp->sha1sum, fullpath);
 		SGLIB_SORTED_LIST_ADD(struct dir_files_status_list, dirList, tmp, ILIST_COMPARATOR, next);
       }
 
