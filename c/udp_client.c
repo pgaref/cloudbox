@@ -145,9 +145,9 @@ int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, ti
 	for(i = 0; i < strlen(filename); i++){
 		packet_to_send[packet_count++] = filename[i];
 	}
-	packet_to_send[packet_count++] = 0;
+	//packet_to_send[packet_count++] = 0;
 	
-	memcpy(&packet_to_send[packet_count], &sha,20);
+	memcpy(&packet_to_send[packet_count], &sha,SHA1_BYTES_LEN);
 	packet_count+=20;
 	if(is_big_endian()){
 		SWAP(file_size);
