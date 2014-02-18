@@ -43,8 +43,10 @@ pthread_mutex_t file_list_mutex;
  */
 void udp_packet_decode(char * packet){
 	char pak[MAXBUF];
-	time_t clk;
-	char client_name[255];
+	char fileSHA[SHA1_BYTES_LEN];
+	off_t file_len;
+	time_t clk, mod_time;
+	char client_name[255], file_name[255];
 	uint16_t tcp_port;
 	int count =3 , i=0;
 	char tmp[2];
@@ -98,6 +100,7 @@ void udp_packet_decode(char * packet){
 	
 	memcpy(&clk, &pak[count],8);
 	count+=8;
+	
 	/*
 	memcpy(&mod_time, &pak[count],8);
 	count+=8;
@@ -106,9 +109,34 @@ void udp_packet_decode(char * packet){
 	printf("\tClient Name: %s\n", client_name);
 	printf("\tTCP Listening Port: %u \n", tcp_port);
 	printf("\tPacket Sent at: %s \n", ctime(&clk));
-	/*
-	printf("File modification Time %s \n",ctime(&mod_time));
-	*/
+	
+	/* time_t mod_time, char * filename, char *sha,off_t file_size
+	 * Case of complex message with file fields
+	 * 
+	 */
+	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
+		memcpy(&mod_time, &pak[count],8);
+		count+=8; count++;
+		
+		while(pak[count] != 0){
+			file_name[i++] = pak[count++];
+		}file_name[i] = '\0';
+		count++;
+		
+		memcpy(fileSHA, &pak[count], SHA1_BYTES_LEN);
+		count+=SHA1_BYTES_LEN;
+		
+		memcpy(&file_len, &pak[count], 8);
+		count+=2;
+		
+		
+		printf("\tFile modification Time %s\n",ctime(&mod_time));
+		printf("\tFile Name: %s\n", file_name);
+		printf("\tFile SHA: %s\n", fileSHA);
+		printf("\tFile Size: %5jd\n", (intmax_t)file_len);
+		
+	}
+	
     pthread_mutex_unlock(&print_mutex);
 }
  
