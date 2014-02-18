@@ -55,34 +55,34 @@ void udp_packet_decode(char * packet){
 	pthread_mutex_lock(&print_mutex);
 	switch(tmp[0]){
 		case(1):
-			printf("\tSTATUS_MSG \n");
+			printf("\n\tSTATUS_MSG \n");
 			break;
 		case(2):
-			printf("\tNO_CHANGES_MSG \n");
+			printf("\n\tNO_CHANGES_MSG \n");
 			break;
 		case(3):
-			printf("\tNEW_FILE_MSG \n");
+			printf("\n\tNEW_FILE_MSG \n");
 			break;
 		case(4):
-			printf("\tFILE_CHANGED_MSG \n");
+			printf("\n\tFILE_CHANGED_MSG \n");
 			break;
 		case(5):
-			printf("\tFILE_DELETED_MSG \n");
+			printf("\n\tFILE_DELETED_MSG \n");
 			break;
 		case(6):
-			printf("\tFILE_TRANSFER_REQUEST \n");
+			printf("\n\tFILE_TRANSFER_REQUEST \n");
 			break;
 		case(7):
-			printf("\tFILE_TRANSFER_OFFER \n");
+			printf("\n\tFILE_TRANSFER_OFFER \n");
 			break;
 		case(8):
-			printf("\tDIR_EMPTY \n");
+			printf("\n\tDIR_EMPTY \n");
 			break;
 		case(-1):
-			printf("\tNOP \n");
+			printf("\n\tNOP \n");
 			break;
 		default:
-			printf("Not a Valid Status: %d %d \n", tmp[0],tmp[1]);
+			printf("\n\tNot a Valid Status: %d %d \n", tmp[0],tmp[1]);
 			break;
 	}
 	
@@ -163,8 +163,8 @@ void * udp_receiver_dispatcher_thread(void *port){
 			break;
 		}
 		pthread_mutex_lock(&print_mutex);
-		printf("UDP SERVER: read %d bytes from IP %s:%d(%s)\n", status,
-		       inet_ntoa(sock_in.sin_addr),sock_in.sin_port, buffer);
+		printf("UDP SERVER: read %d bytes from IP %s:%d\n", status,
+		       inet_ntoa(sock_in.sin_addr),sock_in.sin_port);
 		pthread_mutex_unlock(&print_mutex);
 	}
 	shutdown(sock, 2);
@@ -216,17 +216,18 @@ void compute_sha1_of_buffer(char *outbuff, char *buffer, size_t buffer_len){
  */ 
 void * scan_for_file_changes_thread(void * time_interval){
 	struct dir_files_status_list * currentDir, *currTmp, *watchedTmp, *swap, * result;
-	int msglen;
+	int msglen, listlen;
+	int dirChangedFlag=0;
 	while(1){
 	
 		printf("\n=>Dir Thread is here!! \n");
 		
 		/*
 		 * Send A UDP Status_MSG, still under development!
-		 */
+		 
 		msglen = udp_packet_encode(STATUS_MSG,client_name,TCP_PORT,time(NULL));
 		udp_packet_send(msglen);
-		
+		*/
 		currentDir = listWatchedDir(watched_dir);
 		currTmp = currentDir;
 		watchedTmp = watched_files;
@@ -238,6 +239,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 				while(watchedTmp){
 					printf("File %s deleted \n", watchedTmp->filename);
 					watchedTmp = watchedTmp->next;
+					dirChangedFlag = 1;
 				}
 				break;
 			}
@@ -248,6 +250,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 						(strncmp(watchedTmp->sha1sum, currTmp->sha1sum, 20) !=0 ) ||
 							((watchedTmp->size_in_bytes - currTmp->size_in_bytes) !=0) ){
 					printf("File %s modified \n", watchedTmp->filename);
+					dirChangedFlag = 1;
 				}
 				watchedTmp = watchedTmp->next;
 				currTmp = currTmp->next;
@@ -259,11 +262,13 @@ void * scan_for_file_changes_thread(void * time_interval){
 				if(result == NULL){
 					printf("File %s changed -> Deleted! \n",watchedTmp->filename);	
 					watchedTmp = watchedTmp->next;
+					dirChangedFlag = 1;
 					
 				}
 				else{
 					printf("File %s changed -> Added! \n",currTmp->filename);
 					currTmp = currTmp->next;
+					dirChangedFlag = 1;
 				}
 			
 			}
@@ -273,12 +278,33 @@ void * scan_for_file_changes_thread(void * time_interval){
 		while(currTmp != NULL){
 			printf("File %s Added \n",currTmp->filename);
 			currTmp = currTmp->next;
+			dirChangedFlag = 1;
 		}
 		swap = watched_files; 
 		watched_files =currentDir;
 		
 		dir_list_free(swap);
+		/* Check empty list Case */
+		SGLIB_LIST_LEN(struct dir_files_status_list,watched_files,next, listlen)
+		if( listlen == 0 ){
+			
+			pthread_mutex_lock(&print_mutex);
+			printf("-> The current watched Files List is EMPTY!\n");
+			pthread_mutex_unlock(&print_mutex);
+			
+			msglen = udp_packet_encode(DIR_EMPTY,client_name,TCP_PORT,time(NULL));
+			udp_packet_send(msglen);
+		}
+		else if(dirChangedFlag == 0){
+			pthread_mutex_lock(&print_mutex);
+			printf("-> No changes under the current dir!\n");
+			pthread_mutex_unlock(&print_mutex);
+			
+			msglen = udp_packet_encode(NO_CHANGES_MSG,client_name,TCP_PORT,time(NULL));
+			udp_packet_send(msglen);
+		}
 		PrintWatchedDir(watched_files);
+		
 		sleep((intptr_t)5);
 	}
 

@@ -172,8 +172,6 @@ int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, ti
 }
 
 
-
-
 void udp_packet_send(int buflen){
 	int sock, status, sinlen;
 	struct sockaddr_in sock_in;
