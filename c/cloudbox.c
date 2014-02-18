@@ -116,7 +116,7 @@ void udp_packet_decode(char * packet){
 	 */
 	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
 		memcpy(&mod_time, &pak[count],8);
-		count+=8;// count++;
+		count+=8; count++;
 		
 		while(pak[count] != 0){
 			file_name[i++] = pak[count++];
