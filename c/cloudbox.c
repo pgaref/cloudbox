@@ -469,7 +469,7 @@ dir_files_status_list * listWatchedDir(char * mydir){
 		}
 		
 		/* Copy to List */
-		tmp->filename = fullpath;
+		tmp->filename = files[i]->d_name;
 		tmp->size_in_bytes = statbuf.st_size;
 		tmp->modifictation_time_from_epoch = statbuf.st_mtime;
 		tmp->permission = statbuf.st_mode;
