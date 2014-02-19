@@ -48,7 +48,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 	off_t file_len;
 	off_t test; 
 	time_t clk, mod_time;
-	char client_name[255], file_name[255];
+	char FromClient[255], file_name[255];
 	uint16_t tcp_port;
 	int count =3 , i=0;
 	char tmp[2];
@@ -62,8 +62,8 @@ void udp_packet_decode(char * packet, char * fromIP){
 	if(pak[2] != 0)
 		perror("Not a Valid Message Field Client_name\n");
 	while(pak[count] != 0){
-		client_name[i++] = pak[count++];
-	}client_name[i] = '\0';
+		FromClient[i++] = pak[count++];
+	}FromClient[i] = '\0';
 	count++;
 	
 	memcpy(&tcp_port, &pak[count], 2);
@@ -146,7 +146,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			break;
 	}
 	
-	printf("\tClient Name: %s\n", client_name);
+	printf("\tClient Name: %s\n", FromClient);
 	printf("\tTCP Listening Port: %u \n", tcp_port);
 	printf("\tPacket Sent at: %s", ctime(&clk));
 	
