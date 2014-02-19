@@ -102,10 +102,6 @@ void udp_packet_decode(char * packet){
 	memcpy(&clk, &pak[count],8);
 	count+=8;
 	
-	/*
-	memcpy(&mod_time, &pak[count],8);
-	count+=8;
-	*/
 	
 	printf("\tClient Name: %s\n", client_name);
 	printf("\tTCP Listening Port: %u \n", tcp_port);
@@ -115,30 +111,19 @@ void udp_packet_decode(char * packet){
 	 * Case of complex message with file fields
 	 * 
 	 */
-	printf("\n count0  %d \n ", count);
 	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
-		printf("\n count01  %d \n ", count);
-		//memcpy(&mod_time, &pak[count],8);
 		memcpy(&test, &pak[count], 8);
 		mod_time = (time_t) test;
-		printf("\n count02  %d \n ", count);
 		count += 9;
-		printf("\n count 1 %d \n ", count);
 		i=0;
 		while(pak[count] != 0){
-			printf("\n CHar %c \n ", pak[count]);
 			file_name[i++] = pak[count++];
 		}file_name[i] = '\0';
 		count++;
-		printf("\n count 2 %d \n ", count);
 		memcpy(fileSHA, &pak[count], SHA1_BYTES_LEN);
 		count+=SHA1_BYTES_LEN;
-		printf("\n count 3 %d \n ", count);
 		memcpy(&file_len, &pak[count], 8);
 		count+=8;
-		
-		printf("\n count 4 %d \n ", count);
-		
 		printf("\tFile modification Time %s\n",ctime(&mod_time));
 		printf("\tFile Name: %s\n", file_name);
 		printf("\tFile SHA: ");
