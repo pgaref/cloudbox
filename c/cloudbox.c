@@ -128,7 +128,7 @@ void udp_packet_decode(char * packet){
 			printf("\n CHar %c \n ", pak[count]);
 			file_name[i++] = pak[count++];
 		}file_name[i] = '\0';
-		//count++;
+		count++;
 		printf("\n count 2 %d \n ", count);
 		memcpy(fileSHA, &pak[count], SHA1_BYTES_LEN);
 		count+=SHA1_BYTES_LEN;
