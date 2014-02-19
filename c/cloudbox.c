@@ -101,7 +101,8 @@ void udp_packet_decode(char * packet, char * fromIP){
 			printf("\n\tNEW_FILE_MSG \n");
 			watchedTmp = watched_files;
 			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
-			currTmp->filename =strdup(file_name);
+			currTmp->filename = (char *) malloc(strlen(file_name));
+			strcpy(currTmp->filename, file_name);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			if(result == NULL){
 				printf("\n\tNOT FOUND\n");
@@ -122,7 +123,8 @@ void udp_packet_decode(char * packet, char * fromIP){
 			printf("\n\tFILE_TRANSFER_REQUEST \n");
 			watchedTmp = watched_files;
 			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
-			currTmp->filename =strdup(file_name);
+			currTmp->filename = (char *) malloc(strlen(file_name));
+			strcpy(currTmp->filename, file_name);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			if((result != NULL) && strcmp(result->sha1sum,fileSHA) ==0){
 				/* its my file the other client is looking for! */
