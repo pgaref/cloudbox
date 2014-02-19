@@ -118,7 +118,8 @@ void udp_packet_decode(char * packet){
 	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
 		printf("\n count01  %d \n ", count);
 		memcpy(&mod_time, &pak[count],8);
-		count += 9;
+		printf("\n count02  %d \n ", count);
+		count = count + 9;
 		printf("\n count 1 %d \n ", count);
 		i=0;
 		while(pak[count] != 0){
