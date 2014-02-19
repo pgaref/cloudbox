@@ -126,7 +126,7 @@ void udp_packet_decode(char * packet){
 			printf("\n CHar %c \n ", pak[count]);
 			file_name[i++] = pak[count++];
 		}file_name[i] = '\0';
-		count++;
+		//count++;
 		printf("\n count 2 %d \n ", count);
 		memcpy(fileSHA, &pak[count], SHA1_BYTES_LEN);
 		count+=SHA1_BYTES_LEN;
@@ -138,7 +138,7 @@ void udp_packet_decode(char * packet){
 		
 		printf("\tFile modification Time %s\n",ctime(&mod_time));
 		printf("\tFile Name: %s\n", file_name);
-		printf("\tFile SHA: %s ", fileSHA);
+		printf("\tFile SHA: ");
 		for(i = 0; i < SHA1_BYTES_LEN; i++)
 			printf("%02x", (unsigned char)fileSHA[i]);
 		printf(" \n");
