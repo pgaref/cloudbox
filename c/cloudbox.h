@@ -219,3 +219,4 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t curr_time, time_t mod_time, char * filename, char *sha,off_t file_size);
 void udp_packet_send(int buflen);
 char * udp_packet_clientName(char * packet);
+int send_file(char * client_ip, uint16_t port, char * filename);

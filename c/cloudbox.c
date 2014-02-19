@@ -41,7 +41,7 @@ pthread_mutex_t file_list_mutex;
 /*
  * Decode UDP packet according to the given instructions!
  */
-void udp_packet_decode(char * packet){
+void udp_packet_decode(char * packet, char * fromIP){
 	struct dir_files_status_list *currTmp, *watchedTmp, *result;
 	char pak[MAXBUF];
 	char fileSHA[SHA1_BYTES_LEN];
@@ -105,6 +105,8 @@ void udp_packet_decode(char * packet){
 			if(result == NULL){
 				printf("\n\tNOT FOUND\n");
 				/* Ask for Transfer! */
+				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,time(NULL),mod_time, file_name,fileSHA,file_len);
+				udp_packet_send(i);
 				
 			}
 			free(currTmp);
@@ -117,6 +119,15 @@ void udp_packet_decode(char * packet){
 			break;
 		case(6):
 			printf("\n\tFILE_TRANSFER_REQUEST \n");
+			watchedTmp = watched_files;
+			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
+			currTmp->filename =strdup(file_name);
+			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
+			if((result != NULL) && strcmp(result->sha1sum,fileSHA) ==0){
+				/* its my file the other client is looking for! */
+				send_file(fromIP, tcp_port, file_name);
+			}
+			free(currTmp);
 			break;
 		case(7):
 			printf("\n\tFILE_TRANSFER_OFFER \n");
@@ -199,7 +210,7 @@ void * udp_receiver_dispatcher_thread(void *port){
 		/* Decoding if message is not from localhost!! */
         if(strcmp(udp_packet_clientName(buffer),client_name)== 0)
             continue;
-		udp_packet_decode(buffer);
+		udp_packet_decode(buffer,inet_ntoa(sock_in.sin_addr));
 		if(!strcmp(buffer, "quit")){
 			printf("Quiting. . .\n");
 			break;
