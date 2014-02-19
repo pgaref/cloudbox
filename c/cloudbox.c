@@ -55,6 +55,37 @@ void udp_packet_decode(char * packet){
 	memcpy(pak, packet,MAXBUF);
 	tmp[0] = pak[0];
 	tmp[1] = pak[1];
+	
+	if(pak[2] != 0)
+		perror("Not a Valid Message Field Client_name\n");
+	while(pak[count] != 0){
+		client_name[i++] = pak[count++];
+	}client_name[i] = '\0';
+	count++;
+	
+	memcpy(&tcp_port, &pak[count], 2);
+	count+=2;
+	
+	memcpy(&clk, &pak[count],8);
+	count+=8;
+	
+	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
+		memcpy(&test, &pak[count], 8);
+		mod_time = (time_t) test;
+		count += 9;
+		i=0;
+		while(pak[count] != 0){
+			file_name[i++] = pak[count++];
+		}file_name[i] = '\0';
+		count++;
+		memcpy(fileSHA, &pak[count], SHA1_BYTES_LEN);
+		count+=SHA1_BYTES_LEN;
+		memcpy(&file_len, &pak[count], 8);
+		count+=8;
+		
+	}
+	
+	
 	pthread_mutex_lock(&print_mutex);
 	switch(tmp[0]){
 		case(1):
@@ -89,20 +120,6 @@ void udp_packet_decode(char * packet){
 			break;
 	}
 	
-	if(pak[2] != 0)
-		perror("Not a Valid Message Field Client_name\n");
-	while(pak[count] != 0){
-		client_name[i++] = pak[count++];
-	}client_name[i] = '\0';
-	count++;
-	
-	memcpy(&tcp_port, &pak[count], 2);
-	count+=2;
-	
-	memcpy(&clk, &pak[count],8);
-	count+=8;
-	
-	
 	printf("\tClient Name: %s\n", client_name);
 	printf("\tTCP Listening Port: %u \n", tcp_port);
 	printf("\tPacket Sent at: %s", ctime(&clk));
@@ -112,19 +129,7 @@ void udp_packet_decode(char * packet){
 	 * 
 	 */
 	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
-		memcpy(&test, &pak[count], 8);
-		mod_time = (time_t) test;
-		count += 9;
-		i=0;
-		while(pak[count] != 0){
-			file_name[i++] = pak[count++];
-		}file_name[i] = '\0';
-		count++;
-		memcpy(fileSHA, &pak[count], SHA1_BYTES_LEN);
-		count+=SHA1_BYTES_LEN;
-		memcpy(&file_len, &pak[count], 8);
-		count+=8;
-		printf("\tFile modification Time %s\n",ctime(&mod_time));
+		printf("\tFile modification Time: %s\n",ctime(&mod_time));
 		printf("\tFile Name: %s\n", file_name);
 		printf("\tFile SHA: ");
 		for(i = 0; i < SHA1_BYTES_LEN; i++)
@@ -133,7 +138,7 @@ void udp_packet_decode(char * packet){
 		printf("\tFile Size: %5jd\n", (intmax_t)file_len);
 		
 	}
-	printf("\n-------- Count = %d-----------\n" ,count);
+	printf("\n-------- Packet Count = %d-----------\n" ,count);
     pthread_mutex_unlock(&print_mutex);
 }
  

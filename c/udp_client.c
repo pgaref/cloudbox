@@ -55,7 +55,7 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 	
 	int packet_count =0, i=0;
 	uint16_t b = (uint16_t) type;
-	time_t clk = time(NULL);
+	//time_t clk = time(NULL);
 	if(is_big_endian()){
 		SWAP(b);
 		memcpy(&packet_to_send, &b, 2);
@@ -77,8 +77,6 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 	}
 	packet_count+=2;
 	
-	/*memcpy(&packet_to_send[packet_count], &clk, 8);
-	packet_count+=8;*/
 	if(is_big_endian()){
 		SWAP(mod_time);
 		memcpy(&packet_to_send[packet_count], &mod_time,8);
@@ -88,12 +86,14 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 	packet_count+=8;
 	
 	/*
+	pthread_mutex_lock(&print_mutex);
 	printf("TYPE : %d \n", type);
 	printf("Pak : %d %d \n", packet_to_send[0], packet_to_send[1]);
 	printf("Tcp Port: %u \n", b);
 	printf("Size: %d\n", packet_count);
 	printf("Current Time %s \n",ctime(&clk));
 	printf("File modification Time %s \n",ctime(&mod_time));
+	pthread_mutex_unlock(&print_mutex);
 	*/
 	return packet_count;
 
@@ -102,7 +102,6 @@ int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, ti
 	
 	int packet_count =0, i=0;
 	uint16_t b = (uint16_t) type;
-	time_t clk = time(NULL);
 	if(is_big_endian()){
 		SWAP(b);
 		memcpy(&packet_to_send, &b, 2);
@@ -124,8 +123,6 @@ int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, ti
 	}
 	packet_count+=2;
 	
-	/*memcpy(&packet_to_send[packet_count], &clk, 8);
-	packet_count+=8;*/
 	if(is_big_endian()){
 		SWAP(curr_time);
 		memcpy(&packet_to_send[packet_count], &curr_time,8);
@@ -156,17 +153,17 @@ int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, ti
 		memcpy(&packet_to_send[packet_count], &file_size,8);
 	}
 	packet_count+=8;
-	
+	/*
 	pthread_mutex_lock(&print_mutex);
 	printf("---Encoding Complex message---\n");
 	printf("TYPE : %d \n", type);
 	printf("Pak : %d %d \n", packet_to_send[0], packet_to_send[1]);
 	printf("File name %s\n", filename);
 	printf("Size: %d\n", packet_count);
-	printf("Current Time %s \n",ctime(&clk));
-	printf("File modification Time %s \n",ctime(&curr_time));
+	printf("Current Time %s \n",ctime(&curr_time));
+	printf("File modification Time %s \n",ctime(&mod_time));
 	pthread_mutex_unlock(&print_mutex);
-	
+	*/
 	return packet_count;
 	
 }
