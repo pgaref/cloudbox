@@ -106,9 +106,9 @@ void udp_packet_decode(char * packet, char * fromIP){
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			if(result == NULL){
 				printf("\n\tNOT FOUND\n");
-				/* Ask for Transfer! 
+				/* Ask for Transfer! */ 
 				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,time(NULL),mod_time, file_name,fileSHA,file_len);
-				udp_packet_send(i);*/
+				udp_packet_send(i);
 				
 			}
 			//free(currTmp);
