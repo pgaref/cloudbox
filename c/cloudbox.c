@@ -45,6 +45,7 @@ void udp_packet_decode(char * packet){
 	char pak[MAXBUF];
 	char fileSHA[SHA1_BYTES_LEN];
 	off_t file_len;
+	off_t test; 
 	time_t clk, mod_time;
 	char client_name[255], file_name[255];
 	uint16_t tcp_port;
@@ -118,6 +119,7 @@ void udp_packet_decode(char * packet){
 	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
 		printf("\n count01  %d \n ", count);
 		//memcpy(&mod_time, &pak[count],8);
+		memcpy(&test, &pak[count], 8);
 		printf("\n count02  %d \n ", count);
 		count += 9;
 		printf("\n count 1 %d \n ", count);
