@@ -110,7 +110,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				udp_packet_send(i);*/
 				
 			}
-			free(currTmp);
+			//free(currTmp);
 			break;
 		case(4):
 			printf("\n\tFILE_CHANGED_MSG \n");
@@ -128,7 +128,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				/* its my file the other client is looking for! */
 				send_file(fromIP, tcp_port, file_name);
 			}
-			free(currTmp);
+			//free(currTmp);
 			break;
 		case(7):
 			printf("\n\tFILE_TRANSFER_OFFER \n");
