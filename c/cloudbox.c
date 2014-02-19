@@ -42,6 +42,7 @@ pthread_mutex_t file_list_mutex;
  * Decode UDP packet according to the given instructions!
  */
 void udp_packet_decode(char * packet){
+	struct dir_files_status_list *currTmp, *watchedTmp, *result;
 	char pak[MAXBUF];
 	char fileSHA[SHA1_BYTES_LEN];
 	off_t file_len;
@@ -52,6 +53,7 @@ void udp_packet_decode(char * packet){
 	int count =3 , i=0;
 	char tmp[2];
 	
+	/* First Decode each field and then print */
 	memcpy(pak, packet,MAXBUF);
 	tmp[0] = pak[0];
 	tmp[1] = pak[1];
@@ -84,7 +86,7 @@ void udp_packet_decode(char * packet){
 		count+=8;
 		
 	}
-	
+	/* Get the Lock and start printing!*/
 	
 	pthread_mutex_lock(&print_mutex);
 	switch(tmp[0]){
@@ -96,6 +98,14 @@ void udp_packet_decode(char * packet){
 			break;
 		case(3):
 			printf("\n\tNEW_FILE_MSG \n");
+			watchedTmp = watched_files;
+			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
+			currTmp->filename =strdup(file_name);
+			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
+			if(result == NULL){
+				printf("\n\tNOT FOUND\n");
+			}
+			
 			break;
 		case(4):
 			printf("\n\tFILE_CHANGED_MSG \n");
