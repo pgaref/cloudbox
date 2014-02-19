@@ -73,7 +73,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 	
 	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
 		memcpy(&test, &pak[count], 8);
-		mod_time = (time_t) test;
+		//mod_time = (time_t) test;
 		count += 9;
 		i=0;
 		while(pak[count] != 0){
