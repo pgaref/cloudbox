@@ -117,19 +117,21 @@ void udp_packet_decode(char * packet){
 	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
 		memcpy(&mod_time, &pak[count],8);
 		count+=8; count++;
-		
+		printf("\n count 1 %d \n ", count);
 		i=0;
 		while(pak[count] != 0){
+			printf("\n CHar %c \n ", pak[count]);
 			file_name[i++] = pak[count++];
 		}file_name[i] = '\0';
 		count++;
-		
+		printf("\n count 2 %d \n ", count);
 		memcpy(fileSHA, &pak[count], SHA1_BYTES_LEN);
 		count+=SHA1_BYTES_LEN;
-		
+		printf("\n count 3 %d \n ", count);
 		memcpy(&file_len, &pak[count], 8);
 		count+=8;
 		
+		printf("\n count 4 %d \n ", count);
 		
 		printf("\tFile modification Time %s\n",ctime(&mod_time));
 		printf("\tFile Name: %s\n", file_name);
@@ -320,7 +322,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 		
 		dir_list_free(swap);
 		/* Check empty list Case */
-		SGLIB_LIST_LEN(struct dir_files_status_list,watched_files,next, listlen)
+		SGLIB_LIST_LEN(struct dir_files_status_list,watched_files,next, listlen);
 		if( listlen == 0 ){
 			
 			pthread_mutex_lock(&print_mutex);

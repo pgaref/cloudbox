@@ -55,7 +55,7 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 	
 	int packet_count =0, i=0;
 	uint16_t b = (uint16_t) type;
-	time_t clk = time(NULL);
+	//time_t clk = time(NULL);
 	if(is_big_endian()){
 		SWAP(b);
 		memcpy(&packet_to_send, &b, 2);
