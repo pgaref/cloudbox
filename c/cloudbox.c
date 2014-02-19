@@ -277,7 +277,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 	while(1){
 	
 		printf("\n=>Dir Thread is here!! \n");
-		
+		dirChangedFlag=0;
 		/*
 		 * Send A UDP Status_MSG, still under development!
 		 
