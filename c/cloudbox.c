@@ -53,7 +53,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 	int count =3 , i=0;
 	char tmp[2];
 	
-	printf("Decode called!@!!!! \n");
+	
 	/* First Decode each field and then print */
 	memcpy(pak, packet,MAXBUF);
 	tmp[0] = pak[0];
@@ -128,6 +128,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			if((result != NULL) && strcmp(result->sha1sum,fileSHA) ==0){
 				/* its my file the other client is looking for! */
+				printf("GOING TO TRANSFER!!!! \n");
 				send_file(fromIP, tcp_port, file_name);
 			}
 			//free(currTmp);
