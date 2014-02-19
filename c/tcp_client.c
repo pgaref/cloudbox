@@ -36,8 +36,12 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 	else 
 		printf("[TCP Client] Connected to server at port %d...ok!\n", port);
 	
+	/*Concat path + filename to get the correct stats */
+	char * fullpath = malloc(strlen(watched_dir) + strlen(filename) + 1);
+	strcpy(fullpath, watched_dir);
+	strcat(fullpath, filename);
+	char* fs_name = fullpath;
 	/* Send File to Server */
-	char* fs_name = filename;
 	char sdbuf[LENGTH]; 
 	printf("[TCP Client] Sending %s to the Server... ", fs_name);
 	FILE *fs = fopen(fs_name, "r");
