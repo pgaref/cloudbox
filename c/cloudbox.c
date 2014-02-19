@@ -138,7 +138,10 @@ void udp_packet_decode(char * packet){
 		
 		printf("\tFile modification Time %s\n",ctime(&mod_time));
 		printf("\tFile Name: %s\n", file_name);
-		printf("\tFile SHA: %s\n", fileSHA);
+		printf("\tFile SHA: %s ", fileSHA);
+		for(i = 0; i < SHA1_BYTES_LEN; i++)
+			printf("%02x", (unsigned char)fileSHA[i]);
+		printf(" \n");
 		printf("\tFile Size: %5jd\n", (intmax_t)file_len);
 		
 	}
