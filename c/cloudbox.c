@@ -114,6 +114,7 @@ void udp_packet_decode(char * packet){
 	 * Case of complex message with file fields
 	 * 
 	 */
+	printf("\n count0  %d \n ", count);
 	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
 		memcpy(&mod_time, &pak[count],8);
 		count+=8; count++;
@@ -342,7 +343,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 		}
 		PrintWatchedDir(watched_files);
 		
-		sleep((intptr_t)5);
+		sleep((intptr_t)10);
 	}
 
 
