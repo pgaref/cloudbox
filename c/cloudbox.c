@@ -53,6 +53,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 	int count =3 , i=0;
 	char tmp[2];
 	
+	printf("Decode called!@!!!! \n");
 	/* First Decode each field and then print */
 	memcpy(pak, packet,MAXBUF);
 	tmp[0] = pak[0];
