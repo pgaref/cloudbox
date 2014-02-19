@@ -104,8 +104,10 @@ void udp_packet_decode(char * packet){
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			if(result == NULL){
 				printf("\n\tNOT FOUND\n");
+				/* Ask for Transfer! */
+				
 			}
-			
+			free(currTmp);
 			break;
 		case(4):
 			printf("\n\tFILE_CHANGED_MSG \n");
