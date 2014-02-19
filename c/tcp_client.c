@@ -51,15 +51,15 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 		exit(1);
 	}
 	
-	tmp = (char *)malloc(sizeof (char) * (strlen(fs_name) + 2));
-	strcpy(tmp, fs_name);          //Copying the file name with tmp 
+	tmp = (char *)malloc(sizeof (char) * (strlen(filename) + 2));
+	strcpy(tmp, filename);          //Copying the file name with tmp 
 	strcat(tmp, "#");            //Appending '#' to tmp
 	
 	memset(sdbuf, '\0', LENGTH);
 	strcpy(sdbuf, tmp);         //Now copying the tmp value to buffer
 	if(send(sockfd, sdbuf, LENGTH, 0) < 0)
 	{
-		fprintf(stderr, "ERROR: Failed to send file %s. (errno = %d)\n", fs_name, errno);
+		fprintf(stderr, "ERROR: Failed to send file %s. (errno = %d)\n", filename, errno);
 		exit(-1);
 	}
 	
@@ -69,12 +69,12 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 	{
 		if(send(sockfd, sdbuf, fs_block_sz, 0) < 0)
 		{
-			fprintf(stderr, "ERROR: Failed to send file %s. (errno = %d)\n", fs_name, errno);
+			fprintf(stderr, "ERROR: Failed to send file %s. (errno = %d)\n", filename, errno);
 			break;
 		}
 		bzero(sdbuf, LENGTH);
 	}
-	printf("Ok File %s from Client was Sent!\n", fs_name);
+	printf("Ok File %s from Client was Sent!\n", filename);
 	
 	close (sockfd);
 	printf("[TCP Client] Closing connection!\n");
