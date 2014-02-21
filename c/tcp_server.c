@@ -146,7 +146,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
 		watchedTmp = watched_files;
 		currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
 		currTmp->filename = (char *) malloc( strlen(fname));
-		srcpy(currTmp->filename, fname);
+		strcpy(currTmp->filename, fname);
 		currTmp->owner = (char *) malloc (sizeof(char));
 		currTmp->group = (char *) malloc (sizeof(char));
 		
