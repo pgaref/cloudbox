@@ -149,6 +149,8 @@ void * handle_incoming_tcp_connection_thread(void *params)
 		SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 		if(result != NULL){
 			compute_sha1_of_file(file_sha, fr_name);
+			printf("\n\tFilename: %s  List nmae %s SHA before %s , SHA after: %s \n", fr_name, result->filename, file_sha, result->sha1sum);
+			
 			if(compare_sha1(file_sha, result->sha1sum) == 0){
 				printf("\t[TCP Server] Transfer => Ok received from client!\n");
 			}
