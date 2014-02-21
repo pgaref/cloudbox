@@ -220,3 +220,4 @@ int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, ti
 void udp_packet_send(int buflen);
 char * udp_packet_clientName(char * packet);
 int send_file(char * client_ip, uint16_t port, char * filename);
+int compare_sha1(char * sha1, char * sha2);

@@ -34,7 +34,7 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 		exit(1);
 	}
 	else{
-		printf("\t[TCP Client] is going to transfer %s \n", filename);	
+		printf("\n\t[TCP Client] is going to transfer %s \n", filename);	
 		printf("\t[TCP Client] Connected to server at port %d...ok!\n", port);
 	}
 	/*Concat path + filename to get the correct stats */
@@ -44,7 +44,7 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 	char* fs_name = fullpath;
 	/* Send File to Server */
 	char sdbuf[LENGTH]; 
-	printf("\t[TCP Client] Sending %s to the Server... ", fs_name);
+	printf("\t[TCP Client] Sending %s to the Server... \n", fs_name);
 	FILE *fs = fopen(fs_name, "r");
 	if(fs == NULL)
 	{
@@ -78,6 +78,6 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 	printf("\t[TCP Client] Ok File %s from Client was Sent!\n", filename);
 	
 	close (sockfd);
-	printf("\t[TCP Client] Closing connection!\n");
+	printf("\t[TCP Client] Closing connection!\n\n");
 	return (0);
 }

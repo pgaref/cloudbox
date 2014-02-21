@@ -126,7 +126,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			currTmp->filename = (char *) malloc(strlen(file_name));
 			strcpy(currTmp->filename, file_name);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
-			if((result != NULL)){// && strcmp(result->sha1sum,fileSHA) ==0){
+			if((result != NULL) && (compare_sha1(result->sha1sum,fileSHA) == 0) ){
 				/* its my file the other client is looking for! 
 				 */
 				send_file(fromIP, tcp_port, file_name);
@@ -266,6 +266,19 @@ void compute_sha1_of_buffer(char *outbuff, char *buffer, size_t buffer_len){
 	SHA1((const unsigned char *)buffer, buffer_len, (unsigned char *)outbuff);
 	/* outbuff now contains the 20-byte SHA-1 hash */
 }
+
+/*  
+ *	Compares two SHA hashes and returns 0 if they are the same or 1 if they are not
+ */
+int compare_sha1(char * sha1, char * sha2){
+	int i = 0;
+	for(i = 0; i < SHA1_BYTES_LEN; i++){
+			if( sha1[i] != sha2[i])
+				return 1;
+	}
+	return 0;
+}
+
 /**
  * This is the thread responsible for scanning periodically
  * the directory for file changes and send the appropriate

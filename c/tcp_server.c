@@ -35,7 +35,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
 		exit(1);
 	}
 	else 
-		printf("[TCP Server] Obtaining socket descriptor successfully.\n");
+		printf("\n\t[TCP Server] Obtaining socket descriptor successfully.\n");
 	
 	/* Fill the client socket address struct */
 	addr_local.sin_family = AF_INET; // Protocol Family
@@ -53,7 +53,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
 	    sinlen = sizeof(struct sockaddr);
 	    getsockname(sockfd, (struct sockaddr *)&addr_local, &sinlen);
 	    TCP_PORT = htons(addr_local.sin_port);
-		printf("[TCP Server] Binded tcp port %d in addr 127.0.0.1 sucessfully.\n",TCP_PORT);
+		printf("\t[TCP Server] Binded tcp port %d in addr 127.0.0.1 sucessfully.\n",TCP_PORT);
 	}
 	/* Listen remote connect/calling */
 	if(listen(sockfd,BACKLOG) == -1)
@@ -62,7 +62,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
 		exit(1);
 	}
 	else
-		printf ("[TCP Server] Listening the port %d successfully.\n", TCP_PORT);
+		printf ("\t[TCP Server] Listening the port %d successfully.\n", TCP_PORT);
 	
 	int success = 0;
 	while(success == 0)
@@ -76,7 +76,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
 			exit(1);
 		}
 		else{ 
-			printf("[TCP Server] Server got connection from %s.\n", inet_ntoa(addr_remote.sin_addr));
+			printf("\n\t[TCP Server] Server got connection from %s.\n", inet_ntoa(addr_remote.sin_addr));
 		}
 		/*Receive File from Client */
 		FILE *fr = NULL;
@@ -101,12 +101,12 @@ void * handle_incoming_tcp_connection_thread(void *params)
                 }
                 
                 fname[i] = '\0';
-                printf("GOT NAME : %s, len %zd \n",fname, strlen(fname));
+                //printf("GOT NAME : %s, len %zd \n",fname, strlen(fname));
                 strcpy(fr_name,watched_dir);
                 strcat(fr_name,fname);
                 fr = fopen(fr_name, "a");
                 if(fr == NULL){
-                    printf("File %s Cannot be opened file on server.\n", fr_name);
+                    fprintf(stderr,"File %s Cannot be opened file on server.\n", fr_name);
                     exit(-1);
                 }
                 
