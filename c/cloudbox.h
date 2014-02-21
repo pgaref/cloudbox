@@ -73,6 +73,14 @@ typedef char boolean;
  */
 #define MAXBUF 65535
 
+/* 
+ * SGLIB - data structures
+ */
+#include "sglib.h"
+
+#define UNUSED(x) (void)(x)
+#define ILIST_COMPARATOR(e1, e2) (strcasecmp(e1->filename, e2->filename))
+
 /**
  * An enum type indicating the type of each message
  * send by the client.

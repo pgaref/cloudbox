@@ -19,6 +19,7 @@ void error(const char *msg)
 void * handle_incoming_tcp_connection_thread(void *params)
 {
 	/* Defining Variables */
+	struct dir_files_status_list *currTmp, *watchedTmp, *result;
 	int sockfd, nsockfd, sin_size; 
 	struct sockaddr_in addr_local; /* client addr */
 	struct sockaddr_in addr_remote; /* server addr */
@@ -27,6 +28,8 @@ void * handle_incoming_tcp_connection_thread(void *params)
 	unsigned sinlen;
 	char fname[LENGTH];
 	char fr_name[LENGTH];
+	char file_sha[SHA1_BYTES_LEN];
+	
 	
 	/* Get the Socket file descriptor */
 	if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
@@ -138,7 +141,26 @@ void * handle_incoming_tcp_connection_thread(void *params)
                 exit(1);
             }
         }
-        printf("TCP Transfer => Ok received from client!\n");
+		/* Check file SHA, if incorrect retransmit */
+		
+		watchedTmp = watched_files;
+		currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
+		currTmp->filename = strdup(fname);
+		SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
+		if(result != NULL){
+			compute_sha1_of_file(file_sha, fr_name);
+			if(compare_sha1(file_sha, result->sha1sum) == 0){
+				printf("\t[TCP Server] Transfer => Ok received from client!\n");
+			}
+			else{
+				printf("\t[TCP Server] Transfer => Failed need to retransmit!\n");
+			}
+		}
+		else{
+			fprintf(stderr, "Could not find File  %s in the watched_list \n", fname);
+		}
+		
+        
         start = 0 ; /* Start over, waiting for new file!*/
         fclose(fr); 
 	}

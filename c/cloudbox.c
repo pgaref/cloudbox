@@ -1,5 +1,5 @@
 #include "cloudbox.h"
-#include "sglib.h"
+
 /*
  * The list that holds all the current watched files.
  * 
@@ -23,8 +23,6 @@ int broadcast_port;
 char *client_name;
 
 
-#define UNUSED(x) (void)(x)
-#define ILIST_COMPARATOR(e1, e2) (strcasecmp(e1->filename, e2->filename))
 /*
  * Print mutex, for printing nicely the messages from different threads
  */
@@ -105,13 +103,21 @@ void udp_packet_decode(char * packet, char * fromIP){
 			strcpy(currTmp->filename, file_name);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			if(result == NULL){
-				printf("\n\tNOT FOUND\n");
+			
+				/* Add file to the list and wait until its received to compare the SHA */
+				currTmp->size_in_bytes = file_len;;
+				strcpy(currTmp->sha1sum ,fileSHA);
+				
+				pthread_mutex_lock(&file_list_mutex);
+				SGLIB_SORTED_LIST_ADD(struct dir_files_status_list, watched_files, currTmp, ILIST_COMPARATOR, next);
+				pthread_mutex_unlock(&file_list_mutex);
+				
 				/* Ask for Transfer! */ 
 				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,time(NULL),mod_time, file_name,fileSHA,file_len);
 				udp_packet_send(i);
 				
 			}
-			free(currTmp);
+			//free(currTmp);
 			break;
 		case(4):
 			printf("\n\tFILE_CHANGED_MSG \n");
@@ -328,7 +334,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 			
 			/* Different files */
 			else{
-				SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, currentDir, watchedTmp, ILIST_COMPARATOR, next, result)
+				SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, currentDir, watchedTmp, ILIST_COMPARATOR, next, result);
 				if(result == NULL){
 					printf("File %s changed -> Deleted! \n",watchedTmp->filename);	
 					watchedTmp = watchedTmp->next;
@@ -357,7 +363,10 @@ void * scan_for_file_changes_thread(void * time_interval){
 			dirChangedFlag = 1;
 		}
 		swap = watched_files; 
+		
+		pthread_mutex_lock(&file_list_mutex);
 		watched_files =currentDir;
+		pthread_mutex_unlock(&file_list_mutex);
 		
 		dir_list_free(swap);
 		/* Check empty list Case */
