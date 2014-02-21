@@ -14,6 +14,7 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 	char *tmp;
 	struct sockaddr_in remote_addr;
 	
+	pthread_mutex_lock(&print_mutex);
 	/* Get the Socket file descriptor */
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
@@ -78,5 +79,6 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 	
 	close (sockfd);
 	printf("[TCP Client] Closing connection!\n");
+	pthread_mutex_unlock(&print_mutex);
 	return (0);
 }

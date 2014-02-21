@@ -111,7 +111,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				udp_packet_send(i);
 				
 			}
-			//free(currTmp);
+			free(currTmp);
 			break;
 		case(4):
 			printf("\n\tFILE_CHANGED_MSG \n");
@@ -127,11 +127,11 @@ void udp_packet_decode(char * packet, char * fromIP){
 			strcpy(currTmp->filename, file_name);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			if((result != NULL)){// && strcmp(result->sha1sum,fileSHA) ==0){
-				/* its my file the other client is looking for! */
-				printf("GOING TO TRANSFER!!!! %s \n", result->filename);
+				/* its my file the other client is looking for! 
+				printf("GOING TO TRANSFER!!!! %s \n", result->filename); */
 				send_file(fromIP, tcp_port, file_name);
 			}
-			//free(currTmp);
+			free(currTmp);
 			break;
 		case(7):
 			printf("\n\tFILE_TRANSFER_OFFER \n");
@@ -324,7 +324,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 				}
 				else{
 					printf("File %s changed -> Added! \n",currTmp->filename);
-					/* Send a file Added mesage!!! */
+					/* Send a file Added message!!! */
 					msglen = udp_file_packet_encode(NEW_FILE_MSG,client_name,TCP_PORT,time(NULL),currTmp->modifictation_time_from_epoch, currTmp->filename,currTmp->sha1sum,currTmp->size_in_bytes);
 					udp_packet_send(msglen);
 					currTmp = currTmp->next;
