@@ -140,8 +140,11 @@ void * handle_incoming_tcp_connection_thread(void *params)
                 exit(1);
             }
         }
-		/* Check file SHA, if incorrect retransmit */
 		
+        start = 0 ; /* Start over, waiting for new file!*/
+        fclose(fr);
+		
+		/* Check file SHA, if incorrect retransmit */
 		watchedTmp = watched_files;
 		currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
 		currTmp->filename = (char *) malloc( strlen(fname));
@@ -169,10 +172,8 @@ void * handle_incoming_tcp_connection_thread(void *params)
 		else{
 			fprintf(stderr, "Could not find File  %s in the watched_list \n", fname);
 		}
+
 		
-        
-        start = 0 ; /* Start over, waiting for new file!*/
-        fclose(fr); 
 	}
 	return 0;
 }
