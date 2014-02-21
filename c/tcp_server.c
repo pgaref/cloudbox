@@ -145,7 +145,11 @@ void * handle_incoming_tcp_connection_thread(void *params)
 		
 		watchedTmp = watched_files;
 		currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
-		currTmp->filename = strdup(fname);
+		currTmp->filename = (char *) malloc( strlen(fname));
+		srcpy(currTmp->filename, fname);
+		currTmp->owner = (char *) malloc (sizeof(char));
+		currTmp->group = (char *) malloc (sizeof(char));
+		
 		SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 		if(result != NULL){
 			compute_sha1_of_file(file_sha, fr_name);
