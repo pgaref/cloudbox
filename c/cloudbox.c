@@ -106,7 +106,9 @@ void udp_packet_decode(char * packet, char * fromIP){
 			
 				/* Add file to the list and wait until its received to compare the SHA */
 				currTmp->size_in_bytes = file_len;;
-				strncpy(currTmp->sha1sum ,fileSHA,20);
+				/* deep copy */
+				for(i = 0; i < SHA1_BYTES_LEN; i++)
+					currTmp->sha1sum[i] = fileSHA[i];
 				
 				pthread_mutex_lock(&file_list_mutex);
 				SGLIB_SORTED_LIST_ADD(struct dir_files_status_list, watched_files, currTmp, ILIST_COMPARATOR, next);
