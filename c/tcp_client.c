@@ -14,7 +14,6 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 	char *tmp;
 	struct sockaddr_in remote_addr;
 	
-	pthread_mutex_lock(&print_mutex);
 	/* Get the Socket file descriptor */
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
@@ -34,9 +33,10 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 		fprintf(stderr, "ERROR: Failed to connect to the host! (errno = %d)\n",errno);
 		exit(1);
 	}
-	else 
-		printf("[TCP Client] Connected to server at port %d...ok!\n", port);
-	
+	else{
+		printf("\t[TCP Client] is going to transfer %s \n", filename);	
+		printf("\t[TCP Client] Connected to server at port %d...ok!\n", port);
+	}
 	/*Concat path + filename to get the correct stats */
 	char * fullpath = malloc(strlen(watched_dir) + strlen(filename) + 1);
 	strcpy(fullpath, watched_dir);
@@ -44,7 +44,7 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 	char* fs_name = fullpath;
 	/* Send File to Server */
 	char sdbuf[LENGTH]; 
-	printf("[TCP Client] Sending %s to the Server... ", fs_name);
+	printf("\t[TCP Client] Sending %s to the Server... ", fs_name);
 	FILE *fs = fopen(fs_name, "r");
 	if(fs == NULL)
 	{
@@ -75,10 +75,9 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 		}
 		bzero(sdbuf, LENGTH);
 	}
-	printf("Ok File %s from Client was Sent!\n", filename);
+	printf("\t[TCP Client] Ok File %s from Client was Sent!\n", filename);
 	
 	close (sockfd);
-	printf("[TCP Client] Closing connection!\n");
-	pthread_mutex_unlock(&print_mutex);
+	printf("\t[TCP Client] Closing connection!\n");
 	return (0);
 }

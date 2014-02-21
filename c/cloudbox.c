@@ -128,7 +128,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			if((result != NULL)){// && strcmp(result->sha1sum,fileSHA) ==0){
 				/* its my file the other client is looking for! 
-				printf("GOING TO TRANSFER!!!! %s \n", result->filename); */
+				 */
 				send_file(fromIP, tcp_port, file_name);
 			}
 			free(currTmp);
