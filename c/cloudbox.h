@@ -229,3 +229,4 @@ void udp_packet_send(int buflen);
 char * udp_packet_clientName(char * packet);
 int send_file(char * client_ip, uint16_t port, char * filename);
 int compare_sha1(char * sha1, char * sha2);
+void print_sha1(char * sha1);

@@ -285,6 +285,11 @@ int compare_sha1(char * sha1, char * sha2){
 	return 0;
 }
 
+void print_sha1(char * sha1){
+int i;
+for(i = 0; i < SHA1_BYTES_LEN; i++)
+			printf("%02x", (unsigned char)sha1[i]);
+}
 /**
  * This is the thread responsible for scanning periodically
  * the directory for file changes and send the appropriate
