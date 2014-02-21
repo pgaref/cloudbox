@@ -106,7 +106,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			
 				/* Add file to the list and wait until its received to compare the SHA */
 				currTmp->size_in_bytes = file_len;;
-				strcpy(currTmp->sha1sum ,fileSHA);
+				strncpy(currTmp->sha1sum ,fileSHA,20);
 				
 				pthread_mutex_lock(&file_list_mutex);
 				SGLIB_SORTED_LIST_ADD(struct dir_files_status_list, watched_files, currTmp, ILIST_COMPARATOR, next);
@@ -284,7 +284,9 @@ int compare_sha1(char * sha1, char * sha2){
 	}
 	return 0;
 }
-
+/*
+ * Prints a readable representation of SHA hash
+ */
 void print_sha1(char * sha1){
 int i;
 for(i = 0; i < SHA1_BYTES_LEN; i++)
