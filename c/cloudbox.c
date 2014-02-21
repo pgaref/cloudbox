@@ -323,7 +323,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 			else if( (strcmp(watchedTmp->filename, currTmp->filename) ==0) ){
 				/* Case Modified file */
 				if( (currTmp->modifictation_time_from_epoch != watchedTmp->modifictation_time_from_epoch) || 
-						(strncmp(watchedTmp->sha1sum, currTmp->sha1sum, 20) !=0 ) ||
+						(compare_sha1(watchedTmp->sha1sum, currTmp->sha1sum) !=0 ) ||
 							((watchedTmp->size_in_bytes - currTmp->size_in_bytes) !=0) ){
 					printf("File %s modified \n", watchedTmp->filename);
 					dirChangedFlag = 1;
