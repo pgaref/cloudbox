@@ -28,7 +28,6 @@ void * handle_incoming_tcp_connection_thread(void *params)
 	unsigned sinlen;
 	char fname[LENGTH];
 	char fr_name[LENGTH];
-	char file_sha[SHA1_BYTES_LEN];
 	
 	
 	/* Get the Socket file descriptor */
@@ -152,14 +151,15 @@ void * handle_incoming_tcp_connection_thread(void *params)
 		
 		SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 		if(result != NULL){
-			compute_sha1_of_file(file_sha, fr_name);
+			compute_sha1_of_file(currTmp->sha1sum, fr_name);
 			printf("\tFilename: %s  List name %s SHA before ", fr_name, result->filename);
-			print_sha1(file_sha);
-			printf(", SHA after:");
 			print_sha1(result->sha1sum);
+			
+			printf(", SHA after:");
+			print_sha1(currTmp->sha1sum);
 			printf("\n");
 			
-			if(compare_sha1(file_sha, result->sha1sum) == 0){
+			if(compare_sha1(currTmp->sha1sum, result->sha1sum) == 0){
 				printf("\t[TCP Server] Transfer => Ok received from client!\n");
 			}
 			else{
