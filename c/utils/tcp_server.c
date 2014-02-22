@@ -80,7 +80,7 @@ int main ()
 		}
 		/*Receive File from Client */
 		char* fr_name = "./receive.txt";
-		FILE *fr = fopen(fr_name, "ab");
+		FILE *fr = fopen(fr_name, "a");
 		if(fr == NULL)
 			printf("File %s Cannot be opened file on server.\n", fr_name);
 		else
@@ -94,8 +94,8 @@ int main ()
 					 *				 getting the *file name */
 					for (i = 0; i < LENGTH; i++)
 					{
-						/* Since '#' is the termination character for file name */
-						if (revbuf[i] == '#')
+						/* Since '\0' is the termination character for file name */
+						if (revbuf[i] == '\0')
 						{
 							start = 1;       // Got the file name
 							break;
@@ -105,7 +105,7 @@ int main ()
 					}
 					
 					fname[i] = '\0';
-					printf("GOT NAME : %s, len %zd \n",fname, strlen(fname));
+					printf("GOT NAME : %s, len %zd  Size %d \n",fname, strlen(fname),fr_block_sz);
 					
 				}
 				else{
@@ -115,8 +115,10 @@ int main ()
 						error("File write failed on server.\n");
 					}
 					bzero(revbuf, LENGTH);
-					if (fr_block_sz == 0 || fr_block_sz != 512) 
+					if (fr_block_sz == 0 || fr_block_sz != 512){ 
+						printf("Going to break! %d \n",fr_block_sz );
 						break;
+					}
 				}
 			}
 			if(fr_block_sz < 0)

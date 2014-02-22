@@ -58,22 +58,22 @@ int main(int argc, char *argv[])
     char* fs_name = argv[3];
     char sdbuf[LENGTH]; 
     printf("[TCP Client] Sending %s to the Server... ", fs_name);
-    FILE *fs = fopen(fs_name, "rb");
+    FILE *fs = fopen(fs_name, "r");
     if(fs == NULL)
     {
         printf("ERROR: File %s not found.\n", fs_name);
         exit(1);
     }
     
-    tmp = (char *)malloc(sizeof (char) * (strlen(fs_name) + 2));
+    tmp = (char *)malloc(sizeof (char) * (strlen(fs_name) + 1));
     strcpy(tmp, fs_name);          //Copying the file name with tmp 
-    strcat(tmp, "#");            //Appending '#' to tmp
+    //strcat(tmp, "#");            //Appending '#' to tmp
     
     memset(sdbuf, '\0', LENGTH);
     strcpy(sdbuf, tmp);         //Now copying the tmp value to buffer
     if(send(sockfd, sdbuf, LENGTH, 0) < 0)
     {
-        fprintf(stderr, "ERROR: Failed to send file %s. (errno = %d)\n", fs_name, errno);
+        fprintf(stderr, "ERROR: Failed to send fileName %s. (errno = %d)\n", fs_name, errno);
         exit(-1);
     }
     
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
         }
         bzero(sdbuf, LENGTH);
     }
-    printf("Ok File %s from Client was Sent!\n", fs_name);
+    printf("Ok File %s from Client was Sent! Size: %d\n", fs_namel fs_block_sz);
 
 	close (sockfd);
 	printf("[TCP Client] Closing connection!\n");
