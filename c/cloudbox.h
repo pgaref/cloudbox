@@ -254,3 +254,8 @@ int compare_sha1(char * sha1, char * sha2);
  * Prints a readable representation of SHA hash
  */
 void print_sha1(char * sha1);
+
+/*
+ * Change file stats after a transfer!
+ */
+ void change_file_stats(char * filename, int64_t modtime);

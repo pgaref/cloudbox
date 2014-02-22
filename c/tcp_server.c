@@ -15,6 +15,18 @@ void error(const char *msg)
 	perror(msg);
 	exit(1);
 }
+void change_file_stats(char * filename, int64_t modtime){
+	struct stat foo;
+	struct utimbuf new_times;
+	
+	stat(filename, &foo);
+	new_times.actime = foo.st_atime; 	/* keep atime unchanged */
+	new_times.modtime = modtime;  		/* set mtime to current time */
+	utime(filename, &new_times);
+ 
+ 
+ 
+ }
 
 void * handle_incoming_tcp_connection_thread(void *params)
 {
@@ -190,17 +202,10 @@ void * handle_incoming_tcp_connection_thread(void *params)
 			
 			if(compare_sha1(currTmp->sha1sum, result->sha1sum) == 0){
 				printf("\t[TCP Server] Transfer => Ok received from client!\n");
-				/* now changing Stats */
 				
-				struct stat foo;
-				//time_t mtime;
-				struct utimbuf new_times;
-
-				stat(fr_name, &foo);
-				//mtime = foo.st_mtime; 										/* seconds since the epoch */
-				new_times.actime = foo.st_atime; 							/* keep atime unchanged */
-				new_times.modtime = result->modifictation_time_from_epoch;  /* set mtime to current time */
-				utime(fr_name, &new_times);
+				/* now changing File Stats (mofication time)*/
+				change_file_stats(fr_name, result->modifictation_time_from_epoch);
+				
 				
 			}
 			else{
