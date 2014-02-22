@@ -49,7 +49,6 @@ void udp_packet_decode(char * packet, char * fromIP){
 	char pak[MAXBUF];
 	char fileSHA[SHA1_BYTES_LEN];
 	off_t file_len;
-	//off_t test; 
 	int64_t clk, mod_time;
 	char FromClient[255], file_name[255];
 	uint16_t tcp_port;
@@ -76,8 +75,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 	count+=8;
 	
 	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
-		//memcpy(&test, &pak[count], 8);
-		//mod_time = (time_t) test;
+		memcpy(&mod_time, &pak[count], 8);
 		count += 9;
 		i=0;
 		while(pak[count] != 0){
@@ -129,7 +127,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				pthread_mutex_unlock(&file_list_mutex);
 				
 				/* Ask for Transfer! */ 
-				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,time(NULL),time(NULL), file_name,fileSHA,file_len);
+				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,clk,mod_time, file_name,fileSHA,file_len);
 				udp_packet_send(i);
 				
 			}
@@ -231,7 +229,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 	 * time_t mod_time, char * filename, char *sha,off_t file_size
 	 */
 	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
-		//printf("\tFile modification Time: %s\n",ctime(&mod_time));
+		printf("\tFile modification Time: %s\n",ctime(&mod_time));
 		printf("\tFile Name: %s\n", file_name);
 		printf("\tFile SHA: ");
 		print_sha1(fileSHA);
@@ -377,6 +375,7 @@ for(i = 0; i < SHA1_BYTES_LEN; i++)
 void * scan_for_file_changes_thread(void * time_interval){
 	struct dir_files_status_list * currentDir, *currTmp, *watchedTmp, *swap, * result;
 	int msglen, listlen;
+	int64_t clk;
 	int dirChangedFlag=0;
 	while(1){
 	
@@ -391,7 +390,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 		currentDir = listWatchedDir(watched_dir);
 		currTmp = currentDir;
 		watchedTmp = watched_files;
-		
+		time(&clk);
 		while(watchedTmp != NULL){
 			
 			/* End of list case, deleted file */
@@ -399,7 +398,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 				while(watchedTmp){
 					printf("File %s deleted \n", watchedTmp->filename);
 					/* Send a file Deleted message!!! */
-					msglen = udp_file_packet_encode(FILE_DELETED_MSG,client_name,TCP_PORT,time(NULL),watchedTmp->modifictation_time_from_epoch, watchedTmp->filename,watchedTmp->sha1sum,watchedTmp->size_in_bytes);
+					msglen = udp_file_packet_encode(FILE_DELETED_MSG,client_name,TCP_PORT,clk,watchedTmp->modifictation_time_from_epoch, watchedTmp->filename,watchedTmp->sha1sum,watchedTmp->size_in_bytes);
 					udp_packet_send(msglen);	
 					watchedTmp = watchedTmp->next;
 					dirChangedFlag = 1;
@@ -424,7 +423,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 				if(result == NULL){
 					printf("File %s changed -> Deleted! \n",watchedTmp->filename);
 					/* Send a file Deleted message!!! */
-					msglen = udp_file_packet_encode(FILE_DELETED_MSG,client_name,TCP_PORT,time(NULL),watchedTmp->modifictation_time_from_epoch, watchedTmp->filename,watchedTmp->sha1sum,watchedTmp->size_in_bytes);
+					msglen = udp_file_packet_encode(FILE_DELETED_MSG,client_name,TCP_PORT,clk,watchedTmp->modifictation_time_from_epoch, watchedTmp->filename,watchedTmp->sha1sum,watchedTmp->size_in_bytes);
 					udp_packet_send(msglen);					
 					watchedTmp = watchedTmp->next;
 					dirChangedFlag = 1;
@@ -433,7 +432,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 				else{
 					printf("File %s changed -> Added! \n",currTmp->filename);
 					/* Send a file Added message!!! */
-					msglen = udp_file_packet_encode(NEW_FILE_MSG,client_name,TCP_PORT,time(NULL),currTmp->modifictation_time_from_epoch, currTmp->filename,currTmp->sha1sum,currTmp->size_in_bytes);
+					msglen = udp_file_packet_encode(NEW_FILE_MSG,client_name,TCP_PORT,clk,currTmp->modifictation_time_from_epoch, currTmp->filename,currTmp->sha1sum,currTmp->size_in_bytes);
 					udp_packet_send(msglen);
 					currTmp = currTmp->next;
 					dirChangedFlag = 1;
@@ -445,8 +444,9 @@ void * scan_for_file_changes_thread(void * time_interval){
 		/* If got more, file added! */
 		while(currTmp != NULL){
 			printf("File %s Added \n",currTmp->filename);
+			time(&clk);
 			/* Send a file Added mesage!!! */
-			msglen = udp_file_packet_encode(NEW_FILE_MSG,client_name,TCP_PORT,time(NULL),currTmp->modifictation_time_from_epoch, currTmp->filename,currTmp->sha1sum,currTmp->size_in_bytes);
+			msglen = udp_file_packet_encode(NEW_FILE_MSG,client_name,TCP_PORT,clk,currTmp->modifictation_time_from_epoch, currTmp->filename,currTmp->sha1sum,currTmp->size_in_bytes);
 			udp_packet_send(msglen);
 			currTmp = currTmp->next;
 			dirChangedFlag = 1;
