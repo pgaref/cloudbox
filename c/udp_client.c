@@ -37,8 +37,8 @@ void SwapBytes(void *pv, size_t n)
 /**
  * Decode a message and return the client name
  */
+char  c_name[255];
 char * udp_packet_clientName(char * packet){
-	char * c_name = (char *) malloc(255);
 	int count =3 , i=0;
 	while(packet[count] != 0){
 		c_name[i++] = packet[count++];
