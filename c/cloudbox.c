@@ -576,8 +576,8 @@ dir_files_status_list * listWatchedDir(char * mydir){
 		tmp->permission = statbuf.st_mode;
 		compute_sha1_of_file(tmp->sha1sum, fullpath);
 		SGLIB_SORTED_LIST_ADD(struct dir_files_status_list, dirList, tmp, ILIST_COMPARATOR, next);
-		free(grpt);
-		free(pwentp);
+		//free(grpt);
+		//free(pwentp);
       }
 	  
 	  
