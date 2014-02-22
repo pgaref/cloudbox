@@ -147,7 +147,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
                     error("File write failed on server.\n");
                 }
                 bzero(revbuf, LENGTH);
-                if (fr_block_sz == 0 || fr_block_sz != 512) 
+                if (fr_block_sz == 0 /*|| fr_block_sz != 512*/) 
                     break;
             }
         }

@@ -65,7 +65,6 @@ int main ()
 		printf ("[TCP Server] Listening the port %d successfully.\n", TCP_PORT);
 	
 	int success = 0;
-	int count = 0;
 	while(success == 0)
 	{
 		sin_size = sizeof(struct sockaddr_in);
@@ -91,7 +90,6 @@ int main ()
 			while((fr_block_sz = recv(nsockfd, revbuf, LENGTH, 0)) > 0) 
 			{
 				if(!start){
-					printf("Here -> filename \n");
 					/* This 'if' loop will executed almost once i.e. until 
 					 *				 getting the *file name */
 					for (i = 0; i < LENGTH; i++)
@@ -111,7 +109,6 @@ int main ()
 					
 				}
 				else{
-					printf("Here -> DATA %d\n",count);
 					
 					int write_sz = fwrite(revbuf, sizeof(char), fr_block_sz, fr);
 					if(write_sz < fr_block_sz)
@@ -123,7 +120,6 @@ int main ()
 						printf("Going to break! %d \n",fr_block_sz );
 						break;
 					}
-					count++;
 				}
 			}
 			if(fr_block_sz < 0)
