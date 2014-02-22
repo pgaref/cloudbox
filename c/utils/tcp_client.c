@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     char* fs_name = argv[3];
     char sdbuf[LENGTH]; 
     printf("[TCP Client] Sending %s to the Server... ", fs_name);
-    FILE *fs = fopen(fs_name, "r");
+    FILE *fs = fopen(fs_name, "rb");
     if(fs == NULL)
     {
         printf("ERROR: File %s not found.\n", fs_name);

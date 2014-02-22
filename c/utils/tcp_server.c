@@ -80,7 +80,7 @@ int main ()
 		}
 		/*Receive File from Client */
 		char* fr_name = "./receive.txt";
-		FILE *fr = fopen(fr_name, "a");
+		FILE *fr = fopen(fr_name, "ab");
 		if(fr == NULL)
 			printf("File %s Cannot be opened file on server.\n", fr_name);
 		else
