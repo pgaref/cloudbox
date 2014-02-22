@@ -50,7 +50,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 	char fileSHA[SHA1_BYTES_LEN];
 	off_t file_len;
 	//off_t test; 
-	time_t clk, mod_time;
+	time_t clk;//, mod_time;
 	char FromClient[255], file_name[255];
 	uint16_t tcp_port;
 	int count =3 , i=0;
@@ -91,7 +91,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 		
 	}
 	/* Get the Lock and start printing!*/
-	
+	time(&clk);
 	pthread_mutex_lock(&print_mutex);
 	switch(tmp[0]){
 		case(1):
@@ -129,7 +129,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				pthread_mutex_unlock(&file_list_mutex);
 				
 				/* Ask for Transfer! */ 
-				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,time(NULL),mod_time, file_name,fileSHA,file_len);
+				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,time(NULL),time(NULL), file_name,fileSHA,file_len);
 				udp_packet_send(i);
 				
 			}
@@ -231,7 +231,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 	 * time_t mod_time, char * filename, char *sha,off_t file_size
 	 */
 	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
-		printf("\tFile modification Time: %s\n",ctime(&mod_time));
+		//printf("\tFile modification Time: %s\n",ctime(&mod_time));
 		printf("\tFile Name: %s\n", file_name);
 		printf("\tFile SHA: ");
 		print_sha1(fileSHA);
