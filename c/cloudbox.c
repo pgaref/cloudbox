@@ -490,6 +490,17 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 		print_sha1(l->sha1sum);
 		printf(" \n");
 	});
+	
+	pthread_mutex_lock(&stats_mutex);
+	printf("\n-> Printing Application Statistics . .\n");
+	printf("Broadcast messages received: %d\n",appStats.msg_num);
+	printf("Messages in KiloBytes received: %lf\n", appStats.msg_size/1000 );
+	printf("Files in KiloBytes received: %lf\n", appStats.file_size/1000 );
+	printf("Average transfer speed in KiloBytes/sec: %f\n", appStats.avg_speed);
+	pthread_mutex_unlock(&stats_mutex);
+	
+	
+	
     pthread_mutex_unlock(&print_mutex);
 }
 

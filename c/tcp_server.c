@@ -192,7 +192,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
 		/* update Stats! */
 		pthread_mutex_lock(&stats_mutex);
 		appStats.file_size += result->size_in_bytes;
-		appStats.avg_speed = (appStats.avg_speed + (result->size_in_bytes/((double)((endTimer.tv_sec * 1000000 + endTimer.tv_usec)- (startTimer.tv_sec * 1000000 + startTimer.tv_usec))/(double)1000000)))/2;
+		appStats.avg_speed = (appStats.avg_speed + ((result->size_in_bytes/1000)/((double)((endTimer.tv_sec * 1000000 + endTimer.tv_usec)- (startTimer.tv_sec * 1000000 + startTimer.tv_usec))/(double)1000000)))/2;
 		pthread_mutex_unlock(&stats_mutex);
 		
 		free(currTmp->filename);
