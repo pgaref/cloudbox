@@ -112,7 +112,7 @@ typedef struct cloudbox_stats{
 	int 	msg_num;
 	double 	msg_size; /* in bytes */
 	double 	file_size; /* in bytes */
-	float	total_time; /* in ms */
+	double	total_time; /* in ms */
 }cloudboxStats;
 
 /**
