@@ -39,6 +39,10 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 	}
 	/*Concat path + filename to get the correct stats */
 	char * fullpath = malloc(strlen(watched_dir) + strlen(filename) + 1);
+	if (!fullpath) {
+        fprintf(stderr, "malloc() failed: insufficient memory!\n");
+        exit(EXIT_FAILURE);
+	}
 	strcpy(fullpath, watched_dir);
 	strcat(fullpath, filename);
 	char* fs_name = fullpath;
@@ -52,9 +56,13 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 		exit(1);
 	}
 	
-	tmp = (char *)malloc(sizeof (char) * (strlen(filename) + 2));
+	tmp = (char *)malloc(sizeof (char) * (strlen(filename) + 1));
+	if (!tmp) {
+        fprintf(stderr, "malloc() failed: insufficient memory!\n");
+        exit(EXIT_FAILURE);
+	}
 	strcpy(tmp, filename);          //Copying the file name with tmp 
-	strcat(tmp, "#");            //Appending '#' to tmp
+	//strcat(tmp, "#");            //Appending '#' to tmp
 	
 	memset(sdbuf, '\0', LENGTH);
 	strcpy(sdbuf, tmp);         //Now copying the tmp value to buffer

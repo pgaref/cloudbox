@@ -107,7 +107,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
                 for (i = 0; i < LENGTH; i++)
                 {
                     /* Since '#' is the termination character for file name */
-                    if (revbuf[i] == '#')
+                    if (revbuf[i] == '\0')
                     {
                         start = 1;       // Got the file name
                         break;
@@ -179,6 +179,10 @@ void * handle_incoming_tcp_connection_thread(void *params)
 		watchedTmp = watched_files;
 		currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
 		currTmp->filename = (char *) malloc( strlen(fname));
+		if (!currTmp || !currTmp->filename) {
+			fprintf(stderr, "malloc() failed: insufficient memory!\n");
+			exit(EXIT_FAILURE);
+		}
 		strcpy(currTmp->filename, fname);
 		
 		SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
