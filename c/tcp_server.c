@@ -182,7 +182,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
 			
 			/* update Stats! */
 			pthread_mutex_lock(&stats_mutex);
-			appStats.file_size += result->size_in_bytes;
+			appStats.file_size  += ((double) result->size_in_bytes );
 			appStats.total_time += ((double) (endTimer.tv_sec - startTimer.tv_sec)*1000);
 			appStats.total_time += ((double) (endTimer.tv_usec - startTimer.tv_usec)/1000);
 			//((double)((endTimer.tv_sec * 1000000 + endTimer.tv_usec)- (startTimer.tv_sec * 1000000 + startTimer.tv_usec))/(double)1000000);
