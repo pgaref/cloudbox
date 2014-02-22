@@ -174,8 +174,15 @@ void * handle_incoming_tcp_connection_thread(void *params)
 			
 			printf(", SHA after:");
 			print_sha1(currTmp->sha1sum);
-			printf("\n");
-			*/
+			printf("\n");*/
+			
+			
+			/* update Stats! */
+			pthread_mutex_lock(&stats_mutex);
+			appStats.file_size += result->size_in_bytes;
+			appStats.total_time += ((double)((endTimer.tv_sec * 1000000 + endTimer.tv_usec)- (startTimer.tv_sec * 1000000 + startTimer.tv_usec))/(double)1000000);
+			pthread_mutex_unlock(&stats_mutex);
+			
 			if(compare_sha1(currTmp->sha1sum, result->sha1sum) == 0){
 				printf("\t[TCP Server] Transfer => Ok received from client!\n");
 			}
@@ -185,15 +192,12 @@ void * handle_incoming_tcp_connection_thread(void *params)
 				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,time(NULL),result->modifictation_time_from_epoch, result->filename,result->sha1sum,result->size_in_bytes);
 				udp_packet_send(i);
 			}
+			
 		}
 		else{
 			fprintf(stderr, "Could not find File  %s in the watched_list \n", fname);
 		}
-		/* update Stats! */
-		pthread_mutex_lock(&stats_mutex);
-		appStats.file_size += result->size_in_bytes;
-		appStats.total_time += ((double)((endTimer.tv_sec * 1000000 + endTimer.tv_usec)- (startTimer.tv_sec * 1000000 + startTimer.tv_usec))/(double)1000000);
-		pthread_mutex_unlock(&stats_mutex);
+		
 		
 		free(currTmp->filename);
 		free(currTmp);
