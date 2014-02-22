@@ -51,7 +51,7 @@ char * udp_packet_clientName(char * packet){
  * Fields containg numbers are SWAPED in case the machine is a big endian!
  */
  char packet_to_send[MAXBUF];
-int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t mod_time){//, time_t, curr_time, time_t mod_time, char * filename, char *sha){
+int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t * mod_time){//, time_t, curr_time, time_t mod_time, char * filename, char *sha){
 	
 	int packet_count =0, i=0;
 	uint16_t b = (uint16_t) type;
@@ -79,9 +79,9 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 	
 	if(is_big_endian()){
 		SWAP(mod_time);
-		memcpy(&packet_to_send[packet_count], &mod_time,8);
+		memcpy(&packet_to_send[packet_count], mod_time,8);
 	}else{
-		memcpy(&packet_to_send[packet_count], &mod_time,8);
+		memcpy(&packet_to_send[packet_count], mod_time,8);
 	}
 	packet_count+=8;
 	
@@ -98,7 +98,7 @@ int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t 
 	return packet_count;
 
 }
-int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t curr_time, time_t mod_time, char * filename, char *sha,off_t file_size){
+int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t *curr_time, time_t * mod_time, char * filename, char *sha,off_t file_size){
 	
 	int packet_count =0, i=0;
 	uint16_t b = (uint16_t) type;
@@ -125,16 +125,16 @@ int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, ti
 	
 	if(is_big_endian()){
 		SWAP(curr_time);
-		memcpy(&packet_to_send[packet_count], &curr_time,8);
+		memcpy(&packet_to_send[packet_count], curr_time,8);
 	}else{
-		memcpy(&packet_to_send[packet_count], &curr_time,8);
+		memcpy(&packet_to_send[packet_count], curr_time,8);
 	}
 	packet_count+=8;
 	if(is_big_endian()){
 		SWAP(mod_time);
-		memcpy(&packet_to_send[packet_count], &mod_time,8);
+		memcpy(&packet_to_send[packet_count], mod_time,8);
 	}else{
-		memcpy(&packet_to_send[packet_count], &mod_time,8);
+		memcpy(&packet_to_send[packet_count], mod_time,8);
 	}
 	packet_count+=8;
 	/* filename copy */

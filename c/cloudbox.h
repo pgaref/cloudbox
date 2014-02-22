@@ -228,11 +228,11 @@ void udp_packet_encodeNsend();
 /**
  * Encode a packet according to the fields
  */
-int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t mod_time);
+int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t *mod_time);
 /**
  * Encode a complex file packet according to the fields
  */
-int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t curr_time, time_t mod_time, char * filename, char *sha,off_t file_size);
+int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t *curr_time, time_t *mod_time, char * filename, char *sha,off_t file_size);
 /**
  * Send a udp packet !
  */

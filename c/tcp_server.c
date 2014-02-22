@@ -28,7 +28,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
 	unsigned sinlen;
 	char fname[LENGTH];
 	char fr_name[LENGTH];
-	
+	int64_t clk;
 	
 	/* Get the Socket file descriptor */
 	if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
@@ -194,7 +194,8 @@ void * handle_incoming_tcp_connection_thread(void *params)
 			else{
 				printf("\t[TCP Server] Transfer => Failed need to retransmit!\n");
 				/* Phase 2: Retransmit in case of damaged file */
-				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,time(NULL),result->modifictation_time_from_epoch, result->filename,result->sha1sum,result->size_in_bytes);
+				time(&clk);
+				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&result->modifictation_time_from_epoch, result->filename,result->sha1sum,result->size_in_bytes);
 				udp_packet_send(i);
 			}
 			
