@@ -79,6 +79,7 @@ int send_file(char * client_ip, uint16_t port, char * filename){
 	
 	close (sockfd);
 	printf("\t[TCP Client] Closing connection!\n\n");
+	free(fullpath);
 	free(tmp);
 	return (0);
 }

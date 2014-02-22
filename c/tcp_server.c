@@ -162,8 +162,6 @@ void * handle_incoming_tcp_connection_thread(void *params)
 		currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
 		currTmp->filename = (char *) malloc( strlen(fname));
 		strcpy(currTmp->filename, fname);
-		currTmp->owner = (char *) malloc (sizeof(char));
-		currTmp->group = (char *) malloc (sizeof(char));
 		
 		SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 		if(result != NULL){
@@ -188,6 +186,8 @@ void * handle_incoming_tcp_connection_thread(void *params)
 		else{
 			fprintf(stderr, "Could not find File  %s in the watched_list \n", fname);
 		}
+		free(currTmp->filename);
+		free(currTmp);
 
 		
 	}

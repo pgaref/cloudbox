@@ -159,6 +159,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				 */
 				send_file(fromIP, tcp_port, file_name);
 			}
+			free(currTmp->filename);
 			free(currTmp);
 			break;
 		case(7):
@@ -503,7 +504,7 @@ dir_files_status_list * listWatchedDir(char * mydir){
   struct passwd *pwentp;
   struct group grp;
   struct group *grpt;
-  char buf[512];
+  char buf[256];
   char * fullpath;
   struct dir_files_status_list * tmp;
   struct dir_files_status_list * dirList;
@@ -575,10 +576,13 @@ dir_files_status_list * listWatchedDir(char * mydir){
 		tmp->permission = statbuf.st_mode;
 		compute_sha1_of_file(tmp->sha1sum, fullpath);
 		SGLIB_SORTED_LIST_ADD(struct dir_files_status_list, dirList, tmp, ILIST_COMPARATOR, next);
-		free(fullpath);
+		free(grpt);
+		free(pwentp);
       }
-
+	  
+	  
       free (files[i]);
+	  free(fullpath);
     }
 	pthread_mutex_unlock(&file_list_mutex);
 
