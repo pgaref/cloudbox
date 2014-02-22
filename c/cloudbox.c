@@ -493,13 +493,16 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 	
 	pthread_mutex_lock(&stats_mutex);
 	printf("\n-> Printing CloudBox Statistics:\n");
-	printf("Broadcast messages received:\t%d\n",appStats.msg_num);
-	printf("Messages in KiloBytes received:\t%lf\n", appStats.msg_size/1000 );
-	printf("Files in KiloBytes received:\t%lf\n", appStats.file_size/1000 );
+	printf("Broadcast messages received:\t\t%d\n",appStats.msg_num);
+	printf("Messages in KiloBytes received:\t\t%lf\n", appStats.msg_size/1000 );
+	printf("Files in KiloBytes received:\t\t%lf\n", appStats.file_size/1000 );
+	printf("Total Transfer time:\t\t%f(sec)\n",appStats.total_time);
 	if(appStats.file_size > 0)
 		printf("Average transfer speed in KiloBytes/sec:\t%f\n", ((appStats.file_size/1000)/appStats.total_time));
 	else
 		printf("Average transfer speed in KiloBytes/sec:\t~\n");
+		
+	printf("Debug Timer in sec:\t\t %f \n",appStats.total_time);
 	pthread_mutex_unlock(&stats_mutex);
 	
 	
