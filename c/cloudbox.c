@@ -498,7 +498,7 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 	printf("Files in KiloBytes received:\t\t%lf\n", appStats.file_size/1000 );
 	printf("Total Transfer time:\t\t\t%f(sec)\n",appStats.total_time);
 	if(appStats.file_size > 0)
-		printf("Average speed in KiloBytes/sec:\t\t%f\n", ((appStats.file_size/1000)/appStats.total_time));
+		printf("Average speed in KiloBytes/sec:\t\t%f\n", ((appStats.file_size/1000)/(appStats.total_time/1000)));
 	else
 		printf("Average speed in KiloBytes/sec:\t\t~\n");
 	pthread_mutex_unlock(&stats_mutex);

@@ -110,9 +110,9 @@ typedef enum {
 
 typedef struct cloudbox_stats{
 	int 	msg_num;
-	double 	msg_size;
-	double 	file_size;
-	float	total_time;
+	double 	msg_size; /* in bytes */
+	double 	file_size; /* in bytes */
+	float	total_time; /* in ms */
 }cloudboxStats;
 
 /**
