@@ -522,7 +522,7 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 	printf("-> Printing the watched Files List . .\n");
 	printf("Mode\t   Owner  Group\t Size\tDate\t\t    Filename\t\t\tSHA1 \n");
 	SGLIB_LIST_MAP_ON_ELEMENTS(struct dir_files_status_list, dirList, l, next, {
-		localtime_r((&l->modifictation_time_from_epoch), &time);
+		localtime_r(((const time_t *)&l->modifictation_time_from_epoch), &time);
         /* Get localized date string. */
         strftime(datestring, sizeof(datestring), "%F %T", &time);
 		printf( (S_ISDIR(l->permission)) ?  "d" : "-");
