@@ -541,11 +541,11 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 	pthread_mutex_lock(&stats_mutex);
 	printf("\n-> Printing CloudBox Statistics:\n");
 	printf("Broadcast messages received:\t\t%d\n",appStats.msg_num);
-	printf("Messages in KiloBytes received:\t\t%lf\n", appStats.msg_size/1000 );
-	printf("Files in KiloBytes received:\t\t%lf\n", appStats.file_size/1000 );
-	printf("Total Transfer time:\t\t\t%lf(ms)\n",appStats.total_time);
+	printf("Messages in KiloBytes received:\t\t%f\n", (appStats.msg_size/(double)1000));
+	printf("Files in KiloBytes received:\t\t%f\n", (appStats.file_size/(double)1000));
+	printf("Total Transfer time:\t\t\t%f(ms)\n",appStats.total_time);
 	if(appStats.file_size > 0)
-		printf("Average speed in KiloBytes/sec:\t\t%lf\n", ((appStats.file_size/1000)/(appStats.total_time/1000)));
+		printf("Average speed in KiloBytes/sec:\t\t%f\n", ((appStats.file_size/1000)/(appStats.total_time/1000)));
 	else
 		printf("Average speed in KiloBytes/sec:\t\t~\n");
 	pthread_mutex_unlock(&stats_mutex);
@@ -685,6 +685,9 @@ main(int argc, char **argv){
 	 
 	/* Initialize the List Head */
 	watched_files = NULL;
+	/* Initialise stats */
+	appStats.msg_num=0;appStats.msg_size=0;
+	appStats.file_size=0;appStats.total_time=0;
 	
 	/* Initialize the TCP Sever Thread! */
 	if( (t3 = pthread_create( &tcp_thread, NULL, handle_incoming_tcp_connection_thread, (void *) (intptr_t) 1) )){
