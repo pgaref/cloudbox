@@ -99,7 +99,15 @@ void udp_packet_decode(char * packet, char * fromIP){
 			printf("\n\tNEW_FILE_MSG \n");
 			watchedTmp = watched_files;
 			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
+			if (!currTmp) {
+				fprintf(stderr, "malloc() failed: insufficient memory!\n");
+				exit(EXIT_FAILURE);
+			}
 			currTmp->filename = (char *) malloc(strlen(file_name));
+			if (!currTmp->filename) {
+				fprintf(stderr, "malloc() failed: insufficient memory!\n");
+				exit(EXIT_FAILURE);
+			}
 			strcpy(currTmp->filename, file_name);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			/* Case 1: the client does not have the file */
@@ -135,7 +143,15 @@ void udp_packet_decode(char * packet, char * fromIP){
 			printf("\n\tFILE_TRANSFER_REQUEST \n");
 			watchedTmp = watched_files;
 			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
+			if (!currTmp) {
+				fprintf(stderr, "malloc() failed: insufficient memory!\n");
+				exit(EXIT_FAILURE);
+			}
 			currTmp->filename = (char *) malloc(strlen(file_name));
+			if (!currTmp->filename) {
+				fprintf(stderr, "malloc() failed: insufficient memory!\n");
+				exit(EXIT_FAILURE);
+			}
 			strcpy(currTmp->filename, file_name);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			if((result != NULL) && (compare_sha1(result->sha1sum,fileSHA) == 0) ){
@@ -245,6 +261,10 @@ void * udp_receiver_dispatcher_thread(void *port){
 void compute_sha1_of_file(char *outbuff, char *filename){
 	/* outbuff now contains the 20-byte SHA-1 hash */
 	FILE *inFile = fopen (filename, "rb");
+	if(inFile == NULL){
+        fprintf(stderr,"\n Could not open File %s \n", filename);
+		exit(-1);
+    }
 	SHA_CTX shaContext;
 	int bytes;
 	unsigned char data[1024];
