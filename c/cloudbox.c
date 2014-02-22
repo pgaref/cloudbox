@@ -547,6 +547,10 @@ dir_files_status_list * listWatchedDir(char * mydir){
 		
 		/* Copy to List */
 		tmp->filename = strdup(files[i]->d_name);
+		if (!tmp->filename) {
+			fprintf(stderr, "malloc() failed: insufficient memory!\n");
+			exit(EXIT_FAILURE);
+		  }
 		tmp->size_in_bytes = statbuf.st_size;
 		tmp->modifictation_time_from_epoch = statbuf.st_mtime;
 		tmp->permission = statbuf.st_mode;
