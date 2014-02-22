@@ -126,7 +126,7 @@ typedef struct dir_files_status_list {
 	char *	filename;
 	off_t 	size_in_bytes;
 	char 	sha1sum[SHA1_BYTES_LEN];
-	time_t 	modifictation_time_from_epoch;
+	int64_t modifictation_time_from_epoch;
 	/* Extra fields! */
 	char  * owner;
 	char  * group;

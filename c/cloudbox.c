@@ -50,7 +50,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 	char fileSHA[SHA1_BYTES_LEN];
 	off_t file_len;
 	//off_t test; 
-	//time_t clk, mod_time;
+	int64_t clk, mod_time;
 	char FromClient[255], file_name[255];
 	uint16_t tcp_port;
 	int count =3 , i=0;
@@ -72,7 +72,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 	memcpy(&tcp_port, &pak[count], 2);
 	count+=2;
 	
-	//memcpy(&clk, &pak[count],8);
+	memcpy(&clk, &pak[count],8);
 	count+=8;
 	
 	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
@@ -224,7 +224,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 	
 	printf("\tClient Name: %s\n", FromClient);
 	printf("\tTCP Listening Port: %u \n", tcp_port);
-	//printf("\tPacket Sent at: %s", ctime(&clk));
+	printf("\tPacket Sent at: %s", ctime(&clk));
 	
 	/* 
 	 * Case of complex message with file fields
