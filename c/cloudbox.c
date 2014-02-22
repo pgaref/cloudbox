@@ -500,7 +500,7 @@ dir_files_status_list * listWatchedDir(char * mydir){
     {
 	  tmp = (dir_files_status_list *) malloc (sizeof(struct dir_files_status_list)); 
 	  fullpath = malloc(strlen(mydir) + strlen(files[i]->d_name) + 1);
-      if (!fullpath) {
+      if (!fullpath || !tmp) {
         fprintf(stderr, "malloc() failed: insufficient memory!\n");
         exit(EXIT_FAILURE);
 	  }
@@ -513,19 +513,35 @@ dir_files_status_list * listWatchedDir(char * mydir){
 
         if (!getpwuid_r(statbuf.st_uid, &pwent, buf, sizeof(buf), &pwentp)){
 		  tmp->owner = (char * ) malloc ( sizeof(pwent.pw_name));
+		  if (!tmp->owner) {
+			fprintf(stderr, "malloc() failed: insufficient memory!\n");
+			exit(EXIT_FAILURE);
+		  }
 		  sprintf(tmp->owner, "%s", pwent.pw_name);
 		}  
         else{
 		  tmp->owner = (char * ) malloc ( sizeof(statbuf.st_uid));
+		  if (!tmp->owner) {
+			fprintf(stderr, "malloc() failed: insufficient memory!\n");
+			exit(EXIT_FAILURE);
+		  }
 		  sprintf(tmp->owner, "%d", statbuf.st_uid);
 		}
 		  
         if (!getgrgid_r (statbuf.st_gid, &grp, buf, sizeof(buf), &grpt)){
 		  tmp->group = (char *) malloc (sizeof(grp.gr_name));
+		  if (!tmp->group) {
+			fprintf(stderr, "malloc() failed: insufficient memory!\n");
+			exit(EXIT_FAILURE);
+		  }
 		  sprintf(tmp->group, "%s", grp.gr_name);
 		}
         else{
 		  tmp->group = (char *) malloc (sizeof(statbuf.st_gid));
+		  if (!tmp->group) {
+			fprintf(stderr, "malloc() failed: insufficient memory!\n");
+			exit(EXIT_FAILURE);
+		  }
 		  sprintf(tmp->group, "%d", statbuf.st_gid);
 		}
 		
