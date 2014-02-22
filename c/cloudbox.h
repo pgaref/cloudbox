@@ -25,6 +25,7 @@
 
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <dirent.h>
 #include <pwd.h>
 #include <grp.h>
@@ -109,9 +110,9 @@ typedef enum {
 
 typedef struct cloudbox_stats{
 	int 	msg_num;
-	double 	mesageSize;
-	double 	fileSize;
-	float	averageSpeed;
+	double 	msg_size;
+	double 	file_size;
+	float	avg_speed;
 }cloudboxStats;
 
 /**
@@ -141,6 +142,7 @@ typedef struct dir_files_status_list {
  * in order to be able to find immediatly inconsistencies,
  */
 extern struct dir_files_status_list * watched_files;
+extern struct cloudbox_stats appStats;
 extern char * watched_dir;
 extern int broadcast_port;
 extern char *client_name;
@@ -154,7 +156,7 @@ void dir_list_free(struct dir_files_status_list *);
  */
 extern pthread_mutex_t print_mutex;
 
-
+extern pthread_mutex_t stats_mutex;
 /* 
  * Mutex used to protect the accesses from different threads
  * of the file list of the watched directory

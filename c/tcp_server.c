@@ -67,6 +67,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
 		printf ("\t[TCP Server] Listening the port %d successfully.\n", TCP_PORT);
 	
 	int success = 0;
+	struct timeval startTimer, endTimer;
 	while(success == 0)
 	{
 		sin_size = sizeof(struct sockaddr_in);
@@ -90,6 +91,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
             if(!start){
                 /* This 'if' loop will executed almost once i.e. until 
                  *				 getting the *file name */
+				gettimeofday(&startTimer, NULL); /* Start file transfer Timer */
                 for (i = 0; i < LENGTH; i++)
                 {
                     /* Since '#' is the termination character for file name */
@@ -148,6 +150,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
         }
 		
         start = 0 ; /* Start over, waiting for new file!*/
+		gettimeofday(&endTimer, NULL); /* Stop file tranfer timer */
 		lock = flock(fileno(fr), LOCK_UN);
 		if (lock == -1){
 			fprintf(stderr,"\n\t[TCP Server] Error releasing LOCK for File %s !\n", fr_name);
@@ -186,6 +189,12 @@ void * handle_incoming_tcp_connection_thread(void *params)
 		else{
 			fprintf(stderr, "Could not find File  %s in the watched_list \n", fname);
 		}
+		/* update Stats! */
+		pthread_mutex_lock(&stats_mutex);
+		appStats.file_size += result->size_in_bytes;
+		appStats.avg_speed = (appStats.avg_speed + (result->size_in_bytes/((double)((endTimer.tv_sec * 1000000 + endTimer.tv_usec)- (startTimer.tv_sec * 1000000 + startTimer.tv_usec))/(double)1000000)))/2;
+		pthread_mutex_unlock(&stats_mutex);
+		
 		free(currTmp->filename);
 		free(currTmp);
 

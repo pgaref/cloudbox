@@ -35,6 +35,11 @@ pthread_mutex_t print_mutex;
  */
 pthread_mutex_t file_list_mutex;
 
+/*
+ * Phase 2 : Stats struct and mutex for locking
+ */
+struct cloudbox_stats appStats;
+pthread_mutex_t stats_mutex;
 
 /*
  * Decode UDP packet according to the given instructions!
@@ -247,6 +252,11 @@ void * udp_receiver_dispatcher_thread(void *port){
 			printf("Quiting. . .\n");
 			break;
 		}
+		pthread_mutex_lock(&stats_mutex);
+		appStats.msg_num += 1;
+		appStats.msg_size += status;
+		pthread_mutex_unlock(&stats_mutex);
+		
 		pthread_mutex_lock(&print_mutex);
 		printf("UDP SERVER: read %d bytes from IP %s:%d\n", status,
 		       inet_ntoa(sock_in.sin_addr),sock_in.sin_port);
