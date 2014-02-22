@@ -222,14 +222,14 @@ void udp_packet_decode(char * packet, char * fromIP){
 	
 	printf("\tClient Name: %s\n", FromClient);
 	printf("\tTCP Listening Port: %u \n", tcp_port);
-	printf("\tPacket Sent at: %s", ctime(&clk));
+	printf("\tPacket Sent at: %s", ctime((time_t *)&clk));
 	
 	/* 
 	 * Case of complex message with file fields
 	 * time_t mod_time, char * filename, char *sha,off_t file_size
 	 */
 	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
-		printf("\tFile modification Time: %s\n",ctime(&mod_time));
+		printf("\tFile modification Time: %s\n",ctime((time_t *)&mod_time));
 		printf("\tFile Name: %s\n", file_name);
 		printf("\tFile SHA: ");
 		print_sha1(fileSHA);
@@ -390,7 +390,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 		currentDir = listWatchedDir(watched_dir);
 		currTmp = currentDir;
 		watchedTmp = watched_files;
-		time(&clk);
+		time((time_t *)&clk);
 		while(watchedTmp != NULL){
 			
 			/* End of list case, deleted file */
@@ -444,7 +444,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 		/* If got more, file added! */
 		while(currTmp != NULL){
 			printf("File %s Added \n",currTmp->filename);
-			time(&clk);
+			time((time_t *)&clk);
 			/* Send a file Added mesage!!! */
 			msglen = udp_file_packet_encode(NEW_FILE_MSG,client_name,TCP_PORT,clk,currTmp->modifictation_time_from_epoch, currTmp->filename,currTmp->sha1sum,currTmp->size_in_bytes);
 			udp_packet_send(msglen);
@@ -466,7 +466,8 @@ void * scan_for_file_changes_thread(void * time_interval){
 			printf("-> The current watched Files List is EMPTY!\n");
 			pthread_mutex_unlock(&print_mutex);
 			
-			msglen = udp_packet_encode(DIR_EMPTY,client_name,TCP_PORT,time(NULL));
+			time((time_t *)&clk);
+			msglen = udp_packet_encode(DIR_EMPTY,client_name,TCP_PORT,clk);
 			udp_packet_send(msglen);
 		}
 		else if(dirChangedFlag == 0){
@@ -474,6 +475,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 			printf("-> No changes under the current dir!\n");
 			pthread_mutex_unlock(&print_mutex);
 			
+			time((time_t *)&clk);
 			msglen = udp_packet_encode(NO_CHANGES_MSG,client_name,TCP_PORT,time(NULL));
 			udp_packet_send(msglen);
 		}
