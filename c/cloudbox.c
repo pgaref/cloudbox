@@ -54,7 +54,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 	char FromClient[255], file_name[255];
 	uint16_t tcp_port;
 	int count =3 , i=0;
-	char tmp[2];
+	char tmp[2], *file_full_path;
 	
 	
 	/* First Decode each field and then print */
@@ -143,6 +143,47 @@ void udp_packet_decode(char * packet, char * fromIP){
 			break;
 		case(5):
 			printf("\n\tFILE_DELETED_MSG \n");
+			watchedTmp = watched_files;
+			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
+			if (!currTmp) {
+				fprintf(stderr, "malloc() failed: insufficient memory!\n");
+				exit(EXIT_FAILURE);
+			}
+			currTmp->filename = (char *) malloc(strlen(file_name));
+			if (!currTmp->filename) {
+				fprintf(stderr, "malloc() failed: insufficient memory!\n");
+				exit(EXIT_FAILURE);
+			}
+			strcpy(currTmp->filename, file_name);
+			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
+			/* Case 1: the client does have the file */
+			if(result != NULL){
+			
+				/* Check file similarity! */
+				if((file_len == result->size_in_bytes) && (compare_sha1(result->sha1sum,fileSHA) == 0))
+				{
+					/* remove from dir */
+					file_full_path = (char * )malloc(strlen(file_name) + strlen(watched_dir)+1);
+					strcpy(file_full_path,watched_dir);
+					strcat(file_full_path,file_name);
+					if(remove(file_full_path) != 0 ){
+						fprintf(stderr,"[Cloudbox] Error deleting file %s\n",file_full_path);
+						exit(EXIT_FAILURE);
+					}
+					/*now remove from list*/
+					pthread_mutex_lock(&file_list_mutex);
+					SGLIB_LIST_DELETE(struct dir_files_status_list, watchedTmp, result, next);
+					pthread_mutex_unlock(&file_list_mutex);
+					
+					free(file_full_path);
+					
+				}
+				
+			}
+			/* Case 2: the client DOES NOT have the file Deleted */
+			else{
+				free(currTmp);
+			}
 			break;
 		case(6):
 			printf("\n\tFILE_TRANSFER_REQUEST \n");
@@ -185,9 +226,9 @@ void udp_packet_decode(char * packet, char * fromIP){
 	printf("\tTCP Listening Port: %u \n", tcp_port);
 	printf("\tPacket Sent at: %s", ctime(&clk));
 	
-	/* time_t mod_time, char * filename, char *sha,off_t file_size
+	/* 
 	 * Case of complex message with file fields
-	 * 
+	 * time_t mod_time, char * filename, char *sha,off_t file_size
 	 */
 	if( (tmp[0] >= 3) && (tmp[0] <= 7)){
 		printf("\tFile modification Time: %s\n",ctime(&mod_time));
@@ -357,6 +398,9 @@ void * scan_for_file_changes_thread(void * time_interval){
 			if(currTmp == NULL){
 				while(watchedTmp){
 					printf("File %s deleted \n", watchedTmp->filename);
+					/* Send a file Deleted message!!! */
+					msglen = udp_file_packet_encode(FILE_DELETED_MSG,client_name,TCP_PORT,time(NULL),watchedTmp->modifictation_time_from_epoch, watchedTmp->filename,watchedTmp->sha1sum,watchedTmp->size_in_bytes);
+					udp_packet_send(msglen);	
 					watchedTmp = watchedTmp->next;
 					dirChangedFlag = 1;
 				}
@@ -378,7 +422,10 @@ void * scan_for_file_changes_thread(void * time_interval){
 			else{
 				SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, currentDir, watchedTmp, ILIST_COMPARATOR, next, result);
 				if(result == NULL){
-					printf("File %s changed -> Deleted! \n",watchedTmp->filename);	
+					printf("File %s changed -> Deleted! \n",watchedTmp->filename);
+					/* Send a file Deleted message!!! */
+					msglen = udp_file_packet_encode(FILE_DELETED_MSG,client_name,TCP_PORT,time(NULL),watchedTmp->modifictation_time_from_epoch, watchedTmp->filename,watchedTmp->sha1sum,watchedTmp->size_in_bytes);
+					udp_packet_send(msglen);					
 					watchedTmp = watchedTmp->next;
 					dirChangedFlag = 1;
 					

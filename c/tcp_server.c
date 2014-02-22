@@ -108,7 +108,10 @@ void * handle_incoming_tcp_connection_thread(void *params)
                 //printf("GOT NAME : %s, len %zd \n",fname, strlen(fname));
                 strcpy(fr_name,watched_dir);
                 strcat(fr_name,fname);
-                fr = fopen(fr_name, "a");
+				/* if it exists remove it in order not to append to old data*/
+				remove(fr_name);
+                /* Open file and append new data to it */
+				fr = fopen(fr_name, "a");
                 if(fr == NULL){
                     fprintf(stderr,"\n\t[TCP Server] File %s Cannot be opened file on server.\n", fr_name);
                     exit(-1);

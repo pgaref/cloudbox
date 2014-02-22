@@ -221,15 +221,35 @@ void * handle_incoming_tcp_connection_thread(void *params);
  * can fire up a new thread or do a specific job.
  */
 void * udp_receiver_dispatcher_thread(void *params);
-
 /**
  * Encode a packet according to the fields and send it!
  */
 void udp_packet_encodeNsend();
+/**
+ * Encode a packet according to the fields
+ */
 int udp_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t mod_time);
+/**
+ * Encode a complex file packet according to the fields
+ */
 int udp_file_packet_encode(msg_type_t type, char * client_name, int tcp_port, time_t curr_time, time_t mod_time, char * filename, char *sha,off_t file_size);
+/**
+ * Send a udp packet !
+ */
 void udp_packet_send(int buflen);
+/**
+ * Extract the client name from the udp packet data
+ */
 char * udp_packet_clientName(char * packet);
+/**
+ * Send a file through TCP
+ */
 int send_file(char * client_ip, uint16_t port, char * filename);
+/**
+ * A fuction to compare two sha hashes byte - byte comparison. Returns 0 if they are equal, 1 otherwise.
+ */
 int compare_sha1(char * sha1, char * sha2);
+/**
+ * Prints a readable representation of SHA hash
+ */
 void print_sha1(char * sha1);
