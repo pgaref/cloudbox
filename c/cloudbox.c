@@ -439,8 +439,10 @@ void dir_list_free(struct dir_files_status_list * dirList){
 	//printf("-> Trying to Free memory . .\n");
 	SGLIB_LIST_MAP_ON_ELEMENTS(struct dir_files_status_list, dirList, l, next, {
 			free(l->filename);
-			//free(l->owner);
-			//free(l->group);
+			if(l->owner)
+				free(l->owner);
+			if(l->group)
+				free(l->group);
 			free(l);
 	});
 }
