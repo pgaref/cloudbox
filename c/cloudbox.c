@@ -536,7 +536,7 @@ dir_files_status_list * listWatchedDir(char * mydir){
 			fprintf(stderr, "malloc() failed: insufficient memory!\n");
 			exit(EXIT_FAILURE);
 		  }
-		  strcpy(tmp->owner, pwent.pw_name);
+		  sprintf(tmp->owner, "%s", pwent.pw_name);
 		}  
         else{
 		  tmp->owner = (char * ) malloc ( sizeof(statbuf.st_uid));
@@ -553,7 +553,7 @@ dir_files_status_list * listWatchedDir(char * mydir){
 			fprintf(stderr, "malloc() failed: insufficient memory!\n");
 			exit(EXIT_FAILURE);
 		  }
-		  strcpy(tmp->group, grp.gr_name);
+		  sprintf(tmp->group, "%s", grp.gr_name);
 		}
         else{
 		  tmp->group = (char *) malloc (sizeof(statbuf.st_gid));
