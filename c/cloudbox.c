@@ -354,8 +354,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 			/*Same files */
 			else if( (strcmp(watchedTmp->filename, currTmp->filename) ==0) ){
 				/* Case Modified file */
-				if( (currTmp->modifictation_time_from_epoch != watchedTmp->modifictation_time_from_epoch) || 
-						(compare_sha1(watchedTmp->sha1sum, currTmp->sha1sum) !=0 ) ||
+				if( (compare_sha1(watchedTmp->sha1sum, currTmp->sha1sum) !=0 ) ||
 							((watchedTmp->size_in_bytes - currTmp->size_in_bytes) !=0) ){
 					printf("File %s modified \n", watchedTmp->filename);
 					dirChangedFlag = 1;
@@ -397,7 +396,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 		swap = watched_files; 
 		
 		pthread_mutex_lock(&file_list_mutex);
-		watched_files =currentDir;
+		watched_files = currentDir;
 		pthread_mutex_unlock(&file_list_mutex);
 		
 		dir_list_free(swap);
