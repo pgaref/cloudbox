@@ -33,7 +33,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
 	/* Get the Socket file descriptor */
 	if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
 	{
-		fprintf(stderr, "ERROR: Failed to obtain Socket Descriptor. (errno = %d)\n", errno);
+		fprintf(stderr, "[TCP Server] ERROR: Failed to obtain Socket Descriptor. (errno = %d)\n", errno);
 		exit(1);
 	}
 	else 
@@ -48,7 +48,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
 	/* Bind a special Port */
 	if( bind(sockfd, (struct sockaddr*)&addr_local, sizeof(struct sockaddr)) == -1 )
 	{
-		fprintf(stderr, "ERROR: Failed to bind Port. (errno = %d)\n", errno);
+		fprintf(stderr, "[TCP Server] ERROR: Failed to bind Port. (errno = %d)\n", errno);
 		exit(1);
 	}
 	else{

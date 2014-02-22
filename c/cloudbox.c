@@ -503,7 +503,7 @@ dir_files_status_list * listWatchedDir(char * mydir){
   struct passwd *pwentp;
   struct group grp;
   struct group *grpt;
-  char buf[1024];
+  char buf[512];
   char * fullpath;
   struct dir_files_status_list * tmp;
   struct dir_files_status_list * dirList;
@@ -531,12 +531,12 @@ dir_files_status_list * listWatchedDir(char * mydir){
       {
 
         if (!getpwuid_r(statbuf.st_uid, &pwent, buf, sizeof(buf), &pwentp)){
-		  tmp->owner = (char * ) malloc ( sizeof(pwent.pw_name));
+		  tmp->owner = (char * ) malloc ( strlen(pwent.pw_name));
 		  if (!tmp->owner) {
 			fprintf(stderr, "malloc() failed: insufficient memory!\n");
 			exit(EXIT_FAILURE);
 		  }
-		  sprintf(tmp->owner, "%s", pwent.pw_name);
+		  strcpy(tmp->owner, pwent.pw_name);
 		}  
         else{
 		  tmp->owner = (char * ) malloc ( sizeof(statbuf.st_uid));
@@ -548,12 +548,12 @@ dir_files_status_list * listWatchedDir(char * mydir){
 		}
 		  
         if (!getgrgid_r (statbuf.st_gid, &grp, buf, sizeof(buf), &grpt)){
-		  tmp->group = (char *) malloc (sizeof(grp.gr_name));
+		  tmp->group = (char *) malloc (strlen(grp.gr_name));
 		  if (!tmp->group) {
 			fprintf(stderr, "malloc() failed: insufficient memory!\n");
 			exit(EXIT_FAILURE);
 		  }
-		  sprintf(tmp->group, "%s", grp.gr_name);
+		  strcpy(tmp->group, grp.gr_name);
 		}
         else{
 		  tmp->group = (char *) malloc (sizeof(statbuf.st_gid));
@@ -575,6 +575,7 @@ dir_files_status_list * listWatchedDir(char * mydir){
 		tmp->permission = statbuf.st_mode;
 		compute_sha1_of_file(tmp->sha1sum, fullpath);
 		SGLIB_SORTED_LIST_ADD(struct dir_files_status_list, dirList, tmp, ILIST_COMPARATOR, next);
+		free(fullpath);
       }
 
       free (files[i]);
