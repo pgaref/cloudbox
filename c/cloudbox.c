@@ -102,10 +102,11 @@ void udp_packet_decode(char * packet, char * fromIP){
 			currTmp->filename = (char *) malloc(strlen(file_name));
 			strcpy(currTmp->filename, file_name);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
+			/* Case 1: the client does not have the file */
 			if(result == NULL){
 			
 				/* Add file to the list and wait until its received to compare the SHA */
-				currTmp->size_in_bytes = file_len;;
+				currTmp->size_in_bytes = file_len;
 				/* deep copy */
 				for(i = 0; i < SHA1_BYTES_LEN; i++)
 					currTmp->sha1sum[i] = fileSHA[i];
@@ -119,7 +120,10 @@ void udp_packet_decode(char * packet, char * fromIP){
 				udp_packet_send(i);
 				
 			}
-			//free(currTmp);
+			/* Case 2: the client DOES have the file listed */
+			else{
+				free(currTmp);
+			}
 			break;
 		case(4):
 			printf("\n\tFILE_CHANGED_MSG \n");
@@ -167,8 +171,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 		printf("\tFile modification Time: %s\n",ctime(&mod_time));
 		printf("\tFile Name: %s\n", file_name);
 		printf("\tFile SHA: ");
-		for(i = 0; i < SHA1_BYTES_LEN; i++)
-			printf("%02x", (unsigned char)fileSHA[i]);
+		print_sha1(fileSHA);
 		printf(" \n");
 		printf("\tFile Size: %5jd\n", (intmax_t)file_len);
 		
@@ -429,7 +432,6 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 	dir_files_status_list *l;
 	char datestring[256];
 	struct tm time;
-	int i;
 	
 	pthread_mutex_lock(&print_mutex);
 	/* print the sorted list 
@@ -453,8 +455,7 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 		printf( (l->permission & S_IWOTH) ? "w" : "-");
 		printf( (l->permission & S_IXOTH) ? "x" : "-");
 		printf(" %s %s %5jd %s %s \t", l->owner, l->group, (intmax_t) l->size_in_bytes, datestring, l->filename);
-		for(i = 0; i < SHA1_BYTES_LEN; i++)
-			printf("%02x", (unsigned char)l->sha1sum[i]);
+		print_sha1(l->sha1sum);
 		printf(" \n");
 	});
     pthread_mutex_unlock(&print_mutex);

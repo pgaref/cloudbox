@@ -23,6 +23,7 @@
 #include <strings.h>
 #include <errno.h>
 
+#include <sys/file.h>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <pwd.h>

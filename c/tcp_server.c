@@ -20,7 +20,7 @@ void * handle_incoming_tcp_connection_thread(void *params)
 {
 	/* Defining Variables */
 	struct dir_files_status_list *currTmp, *watchedTmp, *result;
-	int sockfd, nsockfd, sin_size; 
+	int sockfd, nsockfd, sin_size, lock; 
 	struct sockaddr_in addr_local; /* client addr */
 	struct sockaddr_in addr_remote; /* server addr */
 	char revbuf[LENGTH]; // Receiver buffer
@@ -108,10 +108,16 @@ void * handle_incoming_tcp_connection_thread(void *params)
                 strcat(fr_name,fname);
                 fr = fopen(fr_name, "a");
                 if(fr == NULL){
-                    fprintf(stderr,"File %s Cannot be opened file on server.\n", fr_name);
+                    fprintf(stderr,"\n\t[TCP Server] File %s Cannot be opened file on server.\n", fr_name);
                     exit(-1);
                 }
-                
+				lock = flock(fileno(fr), LOCK_EX);
+				if(lock == -1){
+					fprintf(stderr,"\n\t[TCP Server] Error acquiring LOCK for File %s !\n", fr_name);
+                    exit(-1);
+				}
+				else
+					printf("\t[TCP Server] Successfully obtained lock for file %s.\n",fr_name);
             }
             else{
                 if(fr == NULL){
@@ -142,7 +148,14 @@ void * handle_incoming_tcp_connection_thread(void *params)
         }
 		
         start = 0 ; /* Start over, waiting for new file!*/
+		lock = flock(fileno(fr), LOCK_UN);
+		if (lock == -1){
+			fprintf(stderr,"\n\t[TCP Server] Error releasing LOCK for File %s !\n", fr_name);
+			exit(-1);
+		}
         fclose(fr);
+		
+		
 		
 		/* Check file SHA, if incorrect retransmit */
 		watchedTmp = watched_files;
@@ -155,18 +168,21 @@ void * handle_incoming_tcp_connection_thread(void *params)
 		SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 		if(result != NULL){
 			compute_sha1_of_file(currTmp->sha1sum, fr_name);
-			printf("\tFilename: %s  List name %s SHA before ", fr_name, result->filename);
+			/*printf("\tFilename: %s  List name %s SHA before ", fr_name, result->filename);
 			print_sha1(result->sha1sum);
 			
 			printf(", SHA after:");
 			print_sha1(currTmp->sha1sum);
 			printf("\n");
-			
+			*/
 			if(compare_sha1(currTmp->sha1sum, result->sha1sum) == 0){
 				printf("\t[TCP Server] Transfer => Ok received from client!\n");
 			}
 			else{
 				printf("\t[TCP Server] Transfer => Failed need to retransmit!\n");
+				/* Phase 2: Retransmit in case of damaged file */
+				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,time(NULL),result->modifictation_time_from_epoch, result->filename,result->sha1sum,result->size_in_bytes);
+				udp_packet_send(i);
 			}
 		}
 		else{
