@@ -91,7 +91,6 @@ void udp_packet_decode(char * packet, char * fromIP){
 		
 	}
 	/* Get the Lock and start printing!*/
-	time(&clk);
 	pthread_mutex_lock(&print_mutex);
 	switch(tmp[0]){
 		case(1):
