@@ -90,6 +90,7 @@ int main ()
 			while((fr_block_sz = recv(nsockfd, revbuf, LENGTH, 0)) > 0) 
 			{
 				if(!start){
+					printf("Here -> filename \n");
 					/* This 'if' loop will executed almost once i.e. until 
 					 *				 getting the *file name */
 					for (i = 0; i < LENGTH; i++)

@@ -78,17 +78,19 @@ int main(int argc, char *argv[])
     }
     
     bzero(sdbuf, LENGTH);
-    int fs_block_sz; 
+    int fs_block_sz,count; 
     while((fs_block_sz = fread(sdbuf, sizeof(char), LENGTH, fs)) > 0)
     {
+		printf("my count %d \n", count);
         if(send(sockfd, sdbuf, fs_block_sz, 0) < 0)
         {
             fprintf(stderr, "ERROR: Failed to send file %s. (errno = %d)\n", fs_name, errno);
             break;
         }
         bzero(sdbuf, LENGTH);
+		count++;
     }
-    printf("Ok File %s from Client was Sent! Size: %d\n", fs_namel fs_block_sz);
+    printf("Ok File %s from Client was Sent! Size: %d\n", fs_name ,fs_block_sz);
 
 	close (sockfd);
 	printf("[TCP Client] Closing connection!\n");
