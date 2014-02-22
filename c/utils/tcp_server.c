@@ -65,6 +65,7 @@ int main ()
 		printf ("[TCP Server] Listening the port %d successfully.\n", TCP_PORT);
 	
 	int success = 0;
+	int count = 0;
 	while(success == 0)
 	{
 		sin_size = sizeof(struct sockaddr_in);
@@ -110,17 +111,19 @@ int main ()
 					
 				}
 				else{
-					printf("Here -> DATA \n");
+					printf("Here -> DATA %d\n",count);
+					
 					int write_sz = fwrite(revbuf, sizeof(char), fr_block_sz, fr);
 					if(write_sz < fr_block_sz)
 					{
 						error("File write failed on server.\n");
 					}
 					bzero(revbuf, LENGTH);
-					if (fr_block_sz == 0 || fr_block_sz != 512){ 
+					if (fr_block_sz == 0){ 
 						printf("Going to break! %d \n",fr_block_sz );
 						break;
 					}
+					count++;
 				}
 			}
 			if(fr_block_sz < 0)
