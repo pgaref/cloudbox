@@ -118,6 +118,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			
 				/* Add file to the list and wait until its received to compare the SHA */
 				currTmp->size_in_bytes = file_len;
+				currTmp->modifictation_time_from_epoch = mod_time;
 				/* deep copy */
 				for(i = 0; i < SHA1_BYTES_LEN; i++)
 					currTmp->sha1sum[i] = fileSHA[i];
@@ -544,7 +545,7 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 	printf("\n-> Printing CloudBox Statistics:\n");
 	printf("Broadcast messages received:\t\t%d\n",appStats.msg_num);
 	printf("Messages in KiloBytes received:\t\t%f\n", (appStats.msg_size/(double)1000));
-	printf("Files in KiloBytes received:\t\t%f\n", (appStats.file_size));
+	printf("Files in KiloBytes received:\t\t%f\n", (appStats.file_size/(double)1000));
 	printf("Total Transfer time:\t\t\t%f(ms)\n",appStats.total_time);
 	if(appStats.file_size > 0)
 		printf("Average speed in KiloBytes/sec:\t\t%f\n", ((appStats.file_size/1000)/(appStats.total_time/1000)));

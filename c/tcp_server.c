@@ -190,6 +190,18 @@ void * handle_incoming_tcp_connection_thread(void *params)
 			
 			if(compare_sha1(currTmp->sha1sum, result->sha1sum) == 0){
 				printf("\t[TCP Server] Transfer => Ok received from client!\n");
+				/* now changing Stats */
+				
+				struct stat foo;
+				//time_t mtime;
+				struct utimbuf new_times;
+
+				stat(fr_name, &foo);
+				//mtime = foo.st_mtime; 										/* seconds since the epoch */
+				new_times.actime = foo.st_atime; 							/* keep atime unchanged */
+				new_times.modtime = result->modifictation_time_from_epoch;  /* set mtime to current time */
+				utime(fr_name, &new_times);
+				
 			}
 			else{
 				printf("\t[TCP Server] Transfer => Failed need to retransmit!\n");
