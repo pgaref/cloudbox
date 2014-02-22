@@ -110,6 +110,7 @@ int main ()
 					
 				}
 				else{
+					printf("Here -> DATA \n");
 					int write_sz = fwrite(revbuf, sizeof(char), fr_block_sz, fr);
 					if(write_sz < fr_block_sz)
 					{
