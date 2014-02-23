@@ -426,7 +426,7 @@ void * udp_receiver_dispatcher_thread(void *port){
 	
 	/*Fill in server's sockaddr_in */
 	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
-	sock_in.sin_port = htons(5555);
+	sock_in.sin_port = htons((intptr_t)port);
 	sock_in.sin_family = PF_INET;
 	
 	/*Bind server socket and listen for incoming client */
@@ -646,7 +646,7 @@ void * scan_for_file_changes_thread(void * time_interval){
 		}
 		PrintWatchedDir(watched_files);
 		
-		sleep((intptr_t)10);
+		sleep((intptr_t)time_interval);
 	}
 
 
@@ -888,7 +888,8 @@ main(int argc, char **argv){
 				break;
 			case 'i':
 				scan_interval = atoi(optarg);
-				scan_interval *= 60;
+				/* I thought the interval was in minutes but it seems its in seconds 
+				scan_interval *= 60;*/
 				
 				if( (t1 = pthread_create( &dir_thread, NULL, scan_for_file_changes_thread, (void *) (intptr_t) scan_interval) )){
 					fprintf(stderr,"Dir_Thread creation failed: %d\n", t1);
