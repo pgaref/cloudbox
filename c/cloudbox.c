@@ -139,6 +139,54 @@ void udp_packet_decode(char * packet, char * fromIP){
 			break;
 		case(4):
 			printf("\n\tFILE_CHANGED_MSG \n");
+			watchedTmp = watched_files;
+			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
+			if (!currTmp) {
+				fprintf(stderr, "malloc() failed: insufficient memory!\n");
+				exit(EXIT_FAILURE);
+			}
+			currTmp->filename = (char *) malloc(strlen(file_name));
+			if (!currTmp->filename) {
+				fprintf(stderr, "malloc() failed: insufficient memory!\n");
+				exit(EXIT_FAILURE);
+			}
+			strcpy(currTmp->filename, file_name);
+			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
+			/* Case 1: the client does not have the file, so add and transfer */
+			if(result == NULL){
+			
+				/* Add file to the list and wait until its received to compare the SHA */
+				currTmp->size_in_bytes = file_len;
+				currTmp->modifictation_time_from_epoch = mod_time;
+				/* deep copy */
+				for(i = 0; i < SHA1_BYTES_LEN; i++)
+					currTmp->sha1sum[i] = fileSHA[i];
+				
+				pthread_mutex_lock(&file_list_mutex);
+				SGLIB_SORTED_LIST_ADD(struct dir_files_status_list, watched_files, currTmp, ILIST_COMPARATOR, next);
+				pthread_mutex_unlock(&file_list_mutex);
+				
+				/* Ask for Transfer! */ 
+				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&mod_time, file_name,fileSHA,file_len);
+				udp_packet_send(i);
+				
+			}
+			/* Case 2: the client DOES have the file listed so update it!*/
+			else{
+				pthread_mutex_lock(&file_list_mutex);
+				/* Add file to the list and wait until its received to compare the SHA */
+				result->size_in_bytes = file_len;
+				result->modifictation_time_from_epoch = mod_time;
+				/* deep copy */
+				for(i = 0; i < SHA1_BYTES_LEN; i++)
+					result->sha1sum[i] = fileSHA[i];
+				pthread_mutex_unlock(&file_list_mutex);
+				/* Ask for Transfer! */ 
+				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&mod_time, file_name,fileSHA,file_len);
+				udp_packet_send(i);
+				
+				free(currTmp);
+			}
 			break;
 		case(5):
 			printf("\n\tFILE_DELETED_MSG \n");
@@ -412,6 +460,9 @@ void * scan_for_file_changes_thread(void * time_interval){
 				if( (compare_sha1(watchedTmp->sha1sum, currTmp->sha1sum) !=0 ) ||
 							((watchedTmp->size_in_bytes - currTmp->size_in_bytes) !=0) ){
 					printf("File %s modified \n", watchedTmp->filename);
+					/* Send a Modified File message!!! */
+					msglen = udp_file_packet_encode(FILE_CHANGED_MSG,client_name,TCP_PORT,&clk,&currTmp->modifictation_time_from_epoch, currTmp->filename,currTmp->sha1sum,currTmp->size_in_bytes);
+					udp_packet_send(msglen);
 					dirChangedFlag = 1;
 				}
 				watchedTmp = watchedTmp->next;
@@ -548,7 +599,7 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 	printf("Files in KiloBytes received:\t\t%f\n", (appStats.file_size/(double)1000));
 	printf("Total Transfer time:\t\t\t%f(ms)\n",appStats.total_time);
 	if(appStats.file_size > 0)
-		printf("Average speed in KiloBytes/sec:\t\t%f\n", ((appStats.file_size/1000)/(appStats.total_time/1000)));
+		printf("Average speed in KiloBytes/sec:\t\t%f\n", ((appStats.file_size/(double)1000)/(appStats.total_time/(double)1000)));
 	else
 		printf("Average speed in KiloBytes/sec:\t\t~\n");
 	pthread_mutex_unlock(&stats_mutex);
@@ -653,8 +704,7 @@ dir_files_status_list * listWatchedDir(char * mydir){
 		tmp->permission = statbuf.st_mode;
 		compute_sha1_of_file(tmp->sha1sum, fullpath);
 		SGLIB_SORTED_LIST_ADD(struct dir_files_status_list, dirList, tmp, ILIST_COMPARATOR, next);
-		//free(grpt);
-		//free(pwentp);
+		
       }
 	  
 	  
