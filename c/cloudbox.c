@@ -336,8 +336,8 @@ void udp_packet_decode(char * packet, char * fromIP){
 		case(8):
 			printf("\n\tDIR_EMPTY \n");
 			//sleep(1);
-			pthread_mutex_lock(&file_list_mutex);
 			watchedTmp = listWatchedDir(watched_dir);;
+			pthread_mutex_lock(&file_list_mutex);
 			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
 			if (!currTmp) {
 				fprintf(stderr, "malloc() failed: insufficient memory!\n");
