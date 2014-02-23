@@ -335,7 +335,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			break;
 		case(8):
 			printf("\n\tDIR_EMPTY \n");
-			sleep(2);
+			//sleep(1);
 			pthread_mutex_lock(&file_list_mutex);
 			watchedTmp = listWatchedDir(watched_dir);;
 			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
