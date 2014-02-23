@@ -100,6 +100,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			break;
 		case(3):
 			printf("\n\tNEW_FILE_MSG \n");
+			pthread_mutex_lock(&file_list_mutex);
 			watchedTmp = watched_files;
 			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
 			if (!currTmp) {
@@ -112,7 +113,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				exit(EXIT_FAILURE);
 			}
 			strcpy(currTmp->filename, file_name);
-			pthread_mutex_lock(&file_list_mutex);
+			
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			/* Case 1: the client does not have the file */
 			if(result == NULL){
@@ -133,7 +134,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				currTmp->processed = TRUE;
 				udp_packet_send(i);
 				currTmp->processed = FALSE;
-				pthread_mutex_unlock(&file_list_mutex);
+				
 			}
 			/* Case 2: the client DOES have the file listed */
 			else{
@@ -147,9 +148,11 @@ void udp_packet_decode(char * packet, char * fromIP){
 				}
 				free(currTmp);
 			}
+			pthread_mutex_unlock(&file_list_mutex);
 			break;
 		case(4):
 			printf("\n\tFILE_CHANGED_MSG \n");
+			pthread_mutex_lock(&file_list_mutex);
 			watchedTmp = watched_files;
 			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
 			if (!currTmp) {
@@ -162,7 +165,6 @@ void udp_packet_decode(char * packet, char * fromIP){
 				exit(EXIT_FAILURE);
 			}
 			strcpy(currTmp->filename, file_name);
-			pthread_mutex_lock(&file_list_mutex);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			/* Case 1: the client does not have the file, so add and transfer */
 			if(result == NULL){
@@ -212,6 +214,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			break;
 		case(5):
 			printf("\n\tFILE_DELETED_MSG \n");
+			pthread_mutex_lock(&file_list_mutex);
 			watchedTmp = watched_files;
 			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
 			if (!currTmp) {
@@ -224,7 +227,6 @@ void udp_packet_decode(char * packet, char * fromIP){
 				exit(EXIT_FAILURE);
 			}
 			strcpy(currTmp->filename, file_name);
-			pthread_mutex_lock(&file_list_mutex);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			/* Case 1: the client does have the file */
 			if(result != NULL){
@@ -264,6 +266,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			break;
 		case(6):
 			printf("\n\tFILE_TRANSFER_REQUEST \n");
+			pthread_mutex_lock(&file_list_mutex);
 			watchedTmp = watched_files;
 			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
 			if (!currTmp) {
@@ -276,7 +279,6 @@ void udp_packet_decode(char * packet, char * fromIP){
 				exit(EXIT_FAILURE);
 			}
 			strcpy(currTmp->filename, file_name);
-			pthread_mutex_lock(&file_list_mutex);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			if((result != NULL) && (compare_sha1(result->sha1sum,fileSHA) == 0) ){
 				/* its my file the other client is looking for! 
@@ -293,6 +295,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			break;
 		case(7):
 			printf("\n\tFILE_TRANSFER_OFFER \n");
+			pthread_mutex_lock(&file_list_mutex);
 			watchedTmp = watched_files;
 			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
 			if (!currTmp) {
@@ -305,7 +308,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				exit(EXIT_FAILURE);
 			}
 			strcpy(currTmp->filename, file_name);
-			pthread_mutex_lock(&file_list_mutex);
+			
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			/* Case 1: the client does not have the file */
 			if(result == NULL){
@@ -337,7 +340,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			printf("\n\tDIR_EMPTY \n");
 			pthread_mutex_unlock(&print_mutex);
 			/* sleep is useful in case we remove all files from directory and we have both DELETE FILE and EMPTY DIR messages */
-			sleep(1);
+			sleep(2);
 			watchedTmp = listWatchedDir(watched_dir);
 			pthread_mutex_lock(&print_mutex);
 			pthread_mutex_lock(&file_list_mutex);
@@ -702,7 +705,7 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 	});
 	
 	pthread_mutex_lock(&stats_mutex);
-	printf("\n---==Printing CloudBox Statistics==---\n");
+	printf("\n---== Printing CloudBox Statistics ==---\n");
 	printf("Broadcast messages received:\t\t%d\n",appStats.msg_num);
 	printf("Messages in KiloBytes received:\t\t%f\n", (appStats.msg_size/(double)1000));
 	printf("Files in KiloBytes received:\t\t%f\n", (appStats.file_size/(double)1000));
