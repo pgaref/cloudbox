@@ -346,8 +346,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				exit(EXIT_FAILURE);
 			}
 			int listlen=0;
-			SGLIB_LIST_LEN(struct dir_files_status_list,watched_files,next, listlen);
-			watchedTmp = watched_files;
+			SGLIB_LIST_LEN(struct dir_files_status_list,watchedTmp,next, listlen);
 			UNUSED(currTmp);
 			/* If other client is empty start updating him */
 			if(listlen > 0){
