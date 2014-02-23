@@ -138,7 +138,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			/* Case 2: the client DOES have the file listed */
 			else{
 				
-				if(result->modifictation_time_from_epoch < currTmp->modifictation_time_from_epoch){
+				if(result->modifictation_time_from_epoch < mod_time){
 					/* Ask for Transfer! */ 
 					i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&mod_time, file_name,fileSHA,file_len);
 					currTmp->processed = TRUE;
@@ -189,7 +189,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			/* Case 2: the client DOES have the file listed so update it!*/
 			else{
 				/*Check timestamp */
-				if(result->modifictation_time_from_epoch < currTmp->modifictation_time_from_epoch){
+				if(result->modifictation_time_from_epoch < mod_time){
 					
 					/* Add file to the list and wait until its received to compare the SHA */
 					result->size_in_bytes = file_len;
@@ -336,6 +336,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 		case(8):
 			printf("\n\tDIR_EMPTY \n");
 			pthread_mutex_unlock(&print_mutex);
+			/* sleep is useful in case we remove all files from directory and we have both DELETE FILE and EMPTY DIR messages */
 			sleep(1);
 			watchedTmp = listWatchedDir(watched_dir);
 			pthread_mutex_lock(&print_mutex);
@@ -701,7 +702,7 @@ void PrintWatchedDir(dir_files_status_list * dirList){
 	});
 	
 	pthread_mutex_lock(&stats_mutex);
-	printf("\n-> Printing CloudBox Statistics:\n");
+	printf("\n---==Printing CloudBox Statistics==---\n");
 	printf("Broadcast messages received:\t\t%d\n",appStats.msg_num);
 	printf("Messages in KiloBytes received:\t\t%f\n", (appStats.msg_size/(double)1000));
 	printf("Files in KiloBytes received:\t\t%f\n", (appStats.file_size/(double)1000));
