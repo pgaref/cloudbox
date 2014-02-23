@@ -112,6 +112,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				exit(EXIT_FAILURE);
 			}
 			strcpy(currTmp->filename, file_name);
+			pthread_mutex_lock(&file_list_mutex);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			/* Case 1: the client does not have the file */
 			if(result == NULL){
@@ -123,16 +124,16 @@ void udp_packet_decode(char * packet, char * fromIP){
 				for(i = 0; i < SHA1_BYTES_LEN; i++)
 					currTmp->sha1sum[i] = fileSHA[i];
 				
-				pthread_mutex_lock(&file_list_mutex);
+				
 				SGLIB_SORTED_LIST_ADD(struct dir_files_status_list, watched_files, currTmp, ILIST_COMPARATOR, next);
-				pthread_mutex_unlock(&file_list_mutex);
+				
 				
 				/* Ask for Transfer! */ 
 				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&mod_time, file_name,fileSHA,file_len);
 				currTmp->processed = TRUE;
 				udp_packet_send(i);
 				currTmp->processed = FALSE;
-				
+				pthread_mutex_unlock(&file_list_mutex);
 			}
 			/* Case 2: the client DOES have the file listed */
 			else{
@@ -161,6 +162,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				exit(EXIT_FAILURE);
 			}
 			strcpy(currTmp->filename, file_name);
+			pthread_mutex_lock(&file_list_mutex);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			/* Case 1: the client does not have the file, so add and transfer */
 			if(result == NULL){
@@ -172,9 +174,9 @@ void udp_packet_decode(char * packet, char * fromIP){
 				for(i = 0; i < SHA1_BYTES_LEN; i++)
 					currTmp->sha1sum[i] = fileSHA[i];
 				
-				pthread_mutex_lock(&file_list_mutex);
+				
 				SGLIB_SORTED_LIST_ADD(struct dir_files_status_list, watched_files, currTmp, ILIST_COMPARATOR, next);
-				pthread_mutex_unlock(&file_list_mutex);
+				
 				
 				/* Ask for Transfer! */ 
 				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&mod_time, file_name,fileSHA,file_len);
@@ -182,19 +184,20 @@ void udp_packet_decode(char * packet, char * fromIP){
 				currTmp->processed = TRUE;
 				udp_packet_send(i);
 				currTmp->processed = FALSE;
+				
 			}
 			/* Case 2: the client DOES have the file listed so update it!*/
 			else{
 				/*Check timestamp */
 				if(result->modifictation_time_from_epoch < currTmp->modifictation_time_from_epoch){
-					pthread_mutex_lock(&file_list_mutex);
+					
 					/* Add file to the list and wait until its received to compare the SHA */
 					result->size_in_bytes = file_len;
 					result->modifictation_time_from_epoch = mod_time;
 					/* deep copy */
 					for(i = 0; i < SHA1_BYTES_LEN; i++)
 						result->sha1sum[i] = fileSHA[i];
-					pthread_mutex_unlock(&file_list_mutex);
+					
 					/* Ask for Transfer! */ 
 					i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&mod_time, file_name,fileSHA,file_len);
 					if (result->processed == FALSE){
@@ -205,6 +208,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				}
 				free(currTmp);
 			}
+			pthread_mutex_unlock(&file_list_mutex);
 			break;
 		case(5):
 			printf("\n\tFILE_DELETED_MSG \n");
@@ -220,6 +224,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				exit(EXIT_FAILURE);
 			}
 			strcpy(currTmp->filename, file_name);
+			pthread_mutex_lock(&file_list_mutex);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			/* Case 1: the client does have the file */
 			if(result != NULL){
@@ -233,7 +238,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 					strcat(file_full_path,file_name);
 					
 					/*now remove from list*/
-					pthread_mutex_lock(&file_list_mutex);
+					
 					if (result->processed == FALSE){
 						result->processed = TRUE;
 						if(remove(file_full_path) != 0 ){
@@ -243,17 +248,19 @@ void udp_packet_decode(char * packet, char * fromIP){
 						SGLIB_LIST_DELETE(struct dir_files_status_list, watchedTmp, result, next);
 						result->processed = FALSE;
 					}
-					pthread_mutex_unlock(&file_list_mutex);
+					
 					
 					free(file_full_path);
 					
 				}
 				
 			}
+			
 			/* Case 2: the client DOES NOT have the file Deleted */
 			else{
 				free(currTmp);
 			}
+			pthread_mutex_unlock(&file_list_mutex);
 			break;
 		case(6):
 			printf("\n\tFILE_TRANSFER_REQUEST \n");
@@ -269,6 +276,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				exit(EXIT_FAILURE);
 			}
 			strcpy(currTmp->filename, file_name);
+			pthread_mutex_lock(&file_list_mutex);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			if((result != NULL) && (compare_sha1(result->sha1sum,fileSHA) == 0) ){
 				/* its my file the other client is looking for! 
@@ -279,6 +287,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 					result->processed = FALSE;
 				}
 			}
+			pthread_mutex_unlock(&file_list_mutex);
 			free(currTmp->filename);
 			free(currTmp);
 			break;
@@ -296,6 +305,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				exit(EXIT_FAILURE);
 			}
 			strcpy(currTmp->filename, file_name);
+			pthread_mutex_lock(&file_list_mutex);
 			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
 			/* Case 1: the client does not have the file */
 			if(result == NULL){
@@ -307,9 +317,8 @@ void udp_packet_decode(char * packet, char * fromIP){
 				for(i = 0; i < SHA1_BYTES_LEN; i++)
 					currTmp->sha1sum[i] = fileSHA[i];
 				
-				pthread_mutex_lock(&file_list_mutex);
+				
 				SGLIB_SORTED_LIST_ADD(struct dir_files_status_list, watched_files, currTmp, ILIST_COMPARATOR, next);
-				pthread_mutex_unlock(&file_list_mutex);
 				
 				/* Ask for Transfer! */ 
 				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&mod_time, file_name,fileSHA,file_len);
@@ -322,11 +331,10 @@ void udp_packet_decode(char * packet, char * fromIP){
 			else{
 				free(currTmp);
 			}
-			
+			pthread_mutex_unlock(&file_list_mutex);
 			break;
 		case(8):
 			printf("\n\tDIR_EMPTY \n");
-			sleep(2);
 			watchedTmp = watched_files;
 			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
 			if (!currTmp) {
@@ -334,6 +342,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 				exit(EXIT_FAILURE);
 			}
 			int listlen=0;
+			pthread_mutex_lock(&file_list_mutex);
 			SGLIB_LIST_LEN(struct dir_files_status_list,watched_files,next, listlen);
 			watchedTmp = watched_files;
 			UNUSED(currTmp);
@@ -353,6 +362,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			
 			
 			}
+			pthread_mutex_unlock(&file_list_mutex);
 			free(currTmp);
 			
 			
