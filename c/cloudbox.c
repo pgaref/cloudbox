@@ -231,14 +231,15 @@ void udp_packet_decode(char * packet, char * fromIP){
 					file_full_path = (char * )malloc(strlen(file_name) + strlen(watched_dir)+1);
 					strcpy(file_full_path,watched_dir);
 					strcat(file_full_path,file_name);
-					if(remove(file_full_path) != 0 ){
-						fprintf(stderr,"[Cloudbox] Error deleting file %s\n",file_full_path);
-						exit(EXIT_FAILURE);
-					}
+					
 					/*now remove from list*/
 					pthread_mutex_lock(&file_list_mutex);
 					if (result->processed == FALSE){
 						result->processed = TRUE;
+						if(remove(file_full_path) != 0 ){
+							fprintf(stderr,"[Cloudbox] Error deleting file %s\n",file_full_path);
+							exit(EXIT_FAILURE);
+						}
 						SGLIB_LIST_DELETE(struct dir_files_status_list, watchedTmp, result, next);
 						result->processed = FALSE;
 					}
