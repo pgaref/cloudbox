@@ -136,6 +136,14 @@ void udp_packet_decode(char * packet, char * fromIP){
 			}
 			/* Case 2: the client DOES have the file listed */
 			else{
+				
+				if(result->modifictation_time_from_epoch < currTmp->modifictation_time_from_epoch){
+					/* Ask for Transfer! */ 
+					i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&mod_time, file_name,fileSHA,file_len);
+					currTmp->processed = TRUE;
+					udp_packet_send(i);
+					currTmp->processed = FALSE;
+				}
 				free(currTmp);
 			}
 			break;
@@ -177,20 +185,23 @@ void udp_packet_decode(char * packet, char * fromIP){
 			}
 			/* Case 2: the client DOES have the file listed so update it!*/
 			else{
-				pthread_mutex_lock(&file_list_mutex);
-				/* Add file to the list and wait until its received to compare the SHA */
-				result->size_in_bytes = file_len;
-				result->modifictation_time_from_epoch = mod_time;
-				/* deep copy */
-				for(i = 0; i < SHA1_BYTES_LEN; i++)
-					result->sha1sum[i] = fileSHA[i];
-				pthread_mutex_unlock(&file_list_mutex);
-				/* Ask for Transfer! */ 
-				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&mod_time, file_name,fileSHA,file_len);
-				if (result->processed == FALSE){
-					result->processed = TRUE;
-					udp_packet_send(i);
-					result->processed = FALSE;
+				/*Check timestamp */
+				if(result->modifictation_time_from_epoch < currTmp->modifictation_time_from_epoch){
+					pthread_mutex_lock(&file_list_mutex);
+					/* Add file to the list and wait until its received to compare the SHA */
+					result->size_in_bytes = file_len;
+					result->modifictation_time_from_epoch = mod_time;
+					/* deep copy */
+					for(i = 0; i < SHA1_BYTES_LEN; i++)
+						result->sha1sum[i] = fileSHA[i];
+					pthread_mutex_unlock(&file_list_mutex);
+					/* Ask for Transfer! */ 
+					i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&mod_time, file_name,fileSHA,file_len);
+					if (result->processed == FALSE){
+						result->processed = TRUE;
+						udp_packet_send(i);
+						result->processed = FALSE;
+					}
 				}
 				free(currTmp);
 			}
@@ -272,9 +283,77 @@ void udp_packet_decode(char * packet, char * fromIP){
 			break;
 		case(7):
 			printf("\n\tFILE_TRANSFER_OFFER \n");
+			watchedTmp = watched_files;
+			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
+			if (!currTmp) {
+				fprintf(stderr, "malloc() failed: insufficient memory!\n");
+				exit(EXIT_FAILURE);
+			}
+			currTmp->filename = (char *) malloc(strlen(file_name));
+			if (!currTmp->filename) {
+				fprintf(stderr, "malloc() failed: insufficient memory!\n");
+				exit(EXIT_FAILURE);
+			}
+			strcpy(currTmp->filename, file_name);
+			SGLIB_LIST_FIND_MEMBER(struct dir_files_status_list, watchedTmp, currTmp, ILIST_COMPARATOR, next, result);
+			/* Case 1: the client does not have the file */
+			if(result == NULL){
+			
+				/* Add file to the list and wait until its received to compare the SHA */
+				currTmp->size_in_bytes = file_len;
+				currTmp->modifictation_time_from_epoch = mod_time;
+				/* deep copy */
+				for(i = 0; i < SHA1_BYTES_LEN; i++)
+					currTmp->sha1sum[i] = fileSHA[i];
+				
+				pthread_mutex_lock(&file_list_mutex);
+				SGLIB_SORTED_LIST_ADD(struct dir_files_status_list, watched_files, currTmp, ILIST_COMPARATOR, next);
+				pthread_mutex_unlock(&file_list_mutex);
+				
+				/* Ask for Transfer! */ 
+				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&mod_time, file_name,fileSHA,file_len);
+				currTmp->processed = TRUE;
+				udp_packet_send(i);
+				currTmp->processed = FALSE;
+				
+			}
+			/* Case 2: the client DOES have the file listed */
+			else{
+				free(currTmp);
+			}
+			
 			break;
 		case(8):
 			printf("\n\tDIR_EMPTY \n");
+			watchedTmp = watched_files;
+			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
+			if (!currTmp) {
+				fprintf(stderr, "malloc() failed: insufficient memory!\n");
+				exit(EXIT_FAILURE);
+			}
+			int listlen=0;
+			SGLIB_LIST_LEN(struct dir_files_status_list,watched_files,next, listlen);
+			watchedTmp = watched_files;
+			UNUSED(currTmp);
+			/* If other client is empty start updating him */
+			if(listlen > 0){
+				SGLIB_LIST_MAP_ON_ELEMENTS(struct dir_files_status_list, watchedTmp, currTmp, next, {
+					
+					/* Offer file! */ 
+					i = udp_file_packet_encode(FILE_TRANSFER_OFFER,client_name,TCP_PORT,&clk,&currTmp->modifictation_time_from_epoch, currTmp->filename,currTmp->sha1sum,currTmp->size_in_bytes);
+					if (currTmp->processed == FALSE){
+						currTmp->processed = TRUE;
+						udp_packet_send(i);
+						currTmp->processed = FALSE;
+					}
+					
+				});
+			
+			
+			}
+			free(currTmp);
+			
+			
 			break;
 		case(-1):
 			printf("\n\tNOP \n");
