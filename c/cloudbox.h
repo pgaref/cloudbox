@@ -132,7 +132,7 @@ typedef struct dir_files_status_list {
 	char  * owner;
 	char  * group;
 	mode_t  permission;
-
+	boolean processed;
 	struct dir_files_status_list *next;
 } dir_files_status_list;
 

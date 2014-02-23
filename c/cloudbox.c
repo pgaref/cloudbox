@@ -129,7 +129,9 @@ void udp_packet_decode(char * packet, char * fromIP){
 				
 				/* Ask for Transfer! */ 
 				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&mod_time, file_name,fileSHA,file_len);
+				currTmp->processed = TRUE;
 				udp_packet_send(i);
+				currTmp->processed = FALSE;
 				
 			}
 			/* Case 2: the client DOES have the file listed */
@@ -168,8 +170,10 @@ void udp_packet_decode(char * packet, char * fromIP){
 				
 				/* Ask for Transfer! */ 
 				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&mod_time, file_name,fileSHA,file_len);
+				/* file does not exist so its ok to set processed without checking */
+				currTmp->processed = TRUE;
 				udp_packet_send(i);
-				
+				currTmp->processed = FALSE;
 			}
 			/* Case 2: the client DOES have the file listed so update it!*/
 			else{
@@ -183,8 +187,11 @@ void udp_packet_decode(char * packet, char * fromIP){
 				pthread_mutex_unlock(&file_list_mutex);
 				/* Ask for Transfer! */ 
 				i = udp_file_packet_encode(FILE_TRANSFER_REQUEST,client_name,TCP_PORT,&clk,&mod_time, file_name,fileSHA,file_len);
-				udp_packet_send(i);
-				
+				if (result->processed == FALSE){
+					result->processed = TRUE;
+					udp_packet_send(i);
+					result->processed = FALSE;
+				}
 				free(currTmp);
 			}
 			break;
@@ -219,7 +226,11 @@ void udp_packet_decode(char * packet, char * fromIP){
 					}
 					/*now remove from list*/
 					pthread_mutex_lock(&file_list_mutex);
-					SGLIB_LIST_DELETE(struct dir_files_status_list, watchedTmp, result, next);
+					if (result->processed == FALSE){
+						result->processed = TRUE;
+						SGLIB_LIST_DELETE(struct dir_files_status_list, watchedTmp, result, next);
+						result->processed = FALSE;
+					}
 					pthread_mutex_unlock(&file_list_mutex);
 					
 					free(file_full_path);
@@ -250,7 +261,11 @@ void udp_packet_decode(char * packet, char * fromIP){
 			if((result != NULL) && (compare_sha1(result->sha1sum,fileSHA) == 0) ){
 				/* its my file the other client is looking for! 
 				 */
-				send_file(fromIP, tcp_port, file_name);
+				if (result->processed == FALSE){
+					result->processed = TRUE;
+					send_file(fromIP, tcp_port, file_name);
+					result->processed = FALSE;
+				}
 			}
 			free(currTmp->filename);
 			free(currTmp);
@@ -702,6 +717,7 @@ dir_files_status_list * listWatchedDir(char * mydir){
 		tmp->size_in_bytes = statbuf.st_size;
 		tmp->modifictation_time_from_epoch = statbuf.st_mtime;
 		tmp->permission = statbuf.st_mode;
+		tmp->processed = FALSE;
 		compute_sha1_of_file(tmp->sha1sum, fullpath);
 		SGLIB_SORTED_LIST_ADD(struct dir_files_status_list, dirList, tmp, ILIST_COMPARATOR, next);
 		
