@@ -336,7 +336,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 		case(8):
 			printf("\n\tDIR_EMPTY \n");
 			pthread_mutex_unlock(&print_mutex);
-			//sleep(1);
+			sleep(1);
 			watchedTmp = listWatchedDir(watched_dir);
 			pthread_mutex_lock(&print_mutex);
 			pthread_mutex_lock(&file_list_mutex);
