@@ -342,6 +342,7 @@ void udp_packet_decode(char * packet, char * fromIP){
 			/* sleep is useful in case we remove all files from directory and we have both DELETE FILE and EMPTY DIR messages */
 			sleep(2);
 			watchedTmp = listWatchedDir(watched_dir);
+			watched_files = watchedTmp;
 			pthread_mutex_lock(&print_mutex);
 			pthread_mutex_lock(&file_list_mutex);
 			currTmp = (struct dir_files_status_list * ) malloc( sizeof (struct dir_files_status_list));
