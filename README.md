@@ -2,7 +2,7 @@ cloudbox
 ========
 A Cloud tool for storing files in a distributed way!
 
-![alt tag](https://www.dropbox.com/s/j5j6sa4o1gcl4dm/Screenshot%202014-12-15%2001.03.07.png)
+![alt tag](https://raw.github.com/pgaref/cloubox/master/extras/Screenshot%202014-12-15%2001.03.07.png)
 
 General Type Messages:
 2 First Bytes | Type
