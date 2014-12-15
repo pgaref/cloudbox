@@ -13,7 +13,7 @@ For the clients communication we currently support these general types of messag
 0x01 | Status Message
 0x02 | Client directory with no changes
 0x03 | File Added
-0x04 | File Modyfied
+0x04 | File Modified
 0x05 | File Deleted
 0x06 | Client Requesting File 
 0x07 | Client Offering a File
